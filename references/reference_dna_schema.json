@@ -1,0 +1,68 @@
+{
+  "version": "0.2",
+  "description": "Shot Photo reference image DNA schema for GPT Image-oriented photography transfer.",
+  "fields": {
+    "subject_scale": {
+      "type": "string",
+      "examples": ["face dominant", "half body", "full body", "small subject in environment"]
+    },
+    "camera_distance": {
+      "type": "string",
+      "examples": ["very close", "close", "medium", "far observation"]
+    },
+    "likely_focal_length": {
+      "type": "string",
+      "examples": ["24-28mm", "28-35mm", "35-50mm", "50-85mm", "85-105mm"]
+    },
+    "camera_height": {
+      "type": "string",
+      "examples": ["ground level", "low", "eye level", "slightly high", "high"]
+    },
+    "camera_relationship": {
+      "type": "string",
+      "examples": ["front observation", "side observation", "rear observation", "through foreground", "distant candid"]
+    },
+    "composition_gravity": {
+      "type": "string"
+    },
+    "spatial_layers": {
+      "type": "object",
+      "fields": ["foreground", "midground", "background"]
+    },
+    "light_geometry": {
+      "type": "object",
+      "fields": ["source", "direction", "hardness", "contrast", "secondary_reflection"]
+    },
+    "color_blocks": {
+      "type": "array",
+      "max_items": 4
+    },
+    "moment_state": {
+      "type": "string",
+      "examples": ["before action", "mid action", "interrupted action", "after action"]
+    },
+    "imperfection_signature": {
+      "type": "array",
+      "max_items": 3
+    },
+    "emotional_mechanism": {
+      "type": "array",
+      "max_items": 4
+    },
+    "confidence": {
+      "type": "object",
+      "description": "Use low/medium/high for inferred fields; never imply exact camera metadata without evidence."
+    }
+  },
+  "transfer_modes": [
+    "structure_transfer",
+    "mood_transfer",
+    "close_rebuild"
+  ],
+  "anchor_budget": {
+    "structural_dna": "3-5",
+    "stylistic_dna": "2-4",
+    "literal_content": "0-2",
+    "free_variables_min": 2
+  }
+}
