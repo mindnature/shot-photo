@@ -1,31 +1,180 @@
 # Shot Photo
 
-面向 GPT Image 的个人 AI 摄影导演 Skill。
+面向 GPT Image 的 AI 摄影导演 Skill。
 
-Shot Photo 不把摄影当成 Prompt 词库，而是把创作拆成：
+当前版本：`v0.5 Random Discovery`。
+
+Shot Photo 不是摄影 Prompt 词库。它同时做两件事：
+
+1. 帮不会摄影的人自动完成焦段、机位、构图、光线和瞬间设计；
+2. 保留并强化随机探索能力，让同一个简单需求产生真正不同的摄影方案。
+
+核心原则：
+
+> 不用规则替代随机，而是让随机也懂摄影。
+
+## 小白最快上手
+
+安装后直接说：
 
 ```text
-意图理解
-→ Hard / Soft Anchors
-→ Photographer Profile
-→ Reference DNA（如有）
-→ Personal Taste（如有）
-→ 摄影兼容性
-→ Series Director / Batch Diversity
-→ GPT Image Prompt
-→ Quality Gate
+使用 $shot-photo。
+大学生，素颜，校园。
+随机给我 8 张，差异大一点。
 ```
 
-当前版本：`v0.4 Series Director`。
+你不需要指定 35mm、低机位、构图、光线或 Photographer Profile。
 
-## 核心能力
+Shot Photo 会自动决定这些摄影变量。
 
-- 主要服务 GPT Image，使用完整自然语言而不是参数堆砌
-- 先判断摄影逻辑，再选择焦段、机位、构图、前景、光线和瞬间
-- 支持 Reference Photo DNA：学参考图“为什么成立”，不是机械复制内容
-- 支持 Personal Taste：把明确的喜欢 / 不喜欢逐步转成摄影选择权重
-- 支持 Series Director：把 6–9 张图片组织成同一次拍摄中的连续组照，而不是随机拼盘
-- 系列模式默认控制同一人物、同一服装世界、有限场景、统一色彩与镜头节奏
+## 四种常用方式
+
+### 1. 普通拍
+
+```text
+使用 $shot-photo。
+一个短发中国女生，广州盛夏，生活感，生成 6 张。
+```
+
+系统会保持相对统一的摄影方向，同时拉开镜头差异。
+
+### 2. 随机拍
+
+```text
+使用 $shot-photo。
+大学生，素颜，校园。
+随机给我 8 张，差异尽量大。
+```
+
+Random Discovery 会主动随机：
+
+- Photographer Profile
+- 场景子区域
+- 动作
+- 表情
+- 服装
+- 景别
+- 焦段
+- 机位
+- 构图
+- 前景
+- 光线
+- 色彩
+- 摄影缺陷
+
+“校园”这种宽泛场景还会自动展开成图书馆、教学楼、操场、食堂、自行车棚、楼梯、空教室、便利店、树荫路等不同子场景。
+
+如果想更随机：
+
+```text
+越随机越好，什么摄影风格都试，给我惊喜。
+```
+
+### 3. 参考图拍
+
+上传参考图后说：
+
+```text
+使用 $shot-photo。
+学这张图的拍法，不复制人物和衣服。
+换成广州夏天，生成 6 张。
+```
+
+系统会提取 Reference DNA，而不是只描述图片内容。
+
+小白只需要理解三句话：
+
+```text
+学拍法
+学感觉
+尽量复刻
+```
+
+### 4. 拍一整套
+
+```text
+使用 $shot-photo。
+做一套 9 张校园写真。
+同一个人物、同一套衣服、同一个下午，像一次真实拍摄。
+```
+
+这时进入 Series Director，而不是 Random Discovery。
+
+## Random Discovery 为什么和原来的随机不同
+
+Random Discovery 不是把所有变量独立抽签。
+
+正确流程：
+
+```text
+随机场景
+→ 随机一个与场景兼容的焦段
+→ 随机兼容景别
+→ 随机合理机位
+→ 随机构图
+→ 随机真实前景
+→ 随机可解释光线
+```
+
+所以它保留“下一张不知道会是什么”的惊喜，同时避免明显不合理的摄影组合。
+
+Random 模式还会检查整个批次，而不是只检查相邻两张，减少“8 张看起来其实是一张图换动作”的问题。
+
+详细规则：`references/random_discovery.md`
+
+实际示例：`examples/RANDOM.md`
+
+## 随机强度
+
+普通用户不用记内部参数，直接用自然语言即可：
+
+```text
+随机一点
+```
+
+整体气质相对稳定，但镜头变化更大。
+
+```text
+随机拍几张 / 差异大一点 / 给我惊喜
+```
+
+默认强随机，每张可以切换 Photographer Profile。
+
+```text
+放飞一点 / 越随机越好 / 什么风格都试
+```
+
+进入高随机探索，尽量减少历史偏好带来的收敛。
+
+## Random 与 Personal Taste
+
+Personal Taste 不应该变成审美信息茧房。
+
+因此：
+
+```text
+普通生成：Taste 正常参与
+Random strong：探索优先，Taste 默认关闭或弱参与
+Random wild：Taste 基本退出
+```
+
+只有用户明确说“随机，但参考我的偏好”时，随机模式才弱加载 Personal Taste。
+
+## Random 与 Series 的区别
+
+```text
+随机拍几张
+→ 每张可以完全不同
+→ Random Discovery
+```
+
+```text
+拍一套 / 九宫格 / 同一次写真
+→ 人物、服装、时间、地点连续
+→ Series Director
+```
+
+如果用户说“拍一套，但镜头随机一点”，Series Continuity 仍然保留，只随机镜头层。
 
 ## 目录
 
@@ -41,6 +190,8 @@ shot-photo/
 │   ├── compatibility.json
 │   ├── gpt_image_prompting.md
 │   ├── quality_gate.md
+│   ├── random_discovery.md
+│   ├── random_scene_expansions.json
 │   ├── reference_dna.md
 │   ├── reference_dna_schema.json
 │   ├── personal_taste.md
@@ -49,10 +200,12 @@ shot-photo/
 │   └── series_recipes.json
 ├── scripts/
 │   ├── generate.py
+│   ├── generate_random.py
 │   ├── generate_series.py
 │   └── update_taste.py
 └── examples/
     ├── USAGE.md
+    ├── RANDOM.md
     ├── REFERENCE_DNA.md
     ├── SERIES.md
     └── siran_taste.json
@@ -65,191 +218,113 @@ mkdir -p ~/.codex/skills
 cp -R shot-photo ~/.codex/skills/
 ```
 
-普通调用：
+## CLI：强随机
 
-```text
-使用 $shot-photo，一个短发中国女生，广州盛夏，生活感，9:16，生成 6 组。
+```bash
+python scripts/generate_random.py "一个大学生，素颜" \
+  --scene 校园 \
+  --count 8 \
+  --strength strong \
+  --seed 42
+```
+
+## CLI：放飞随机
+
+```bash
+python scripts/generate_random.py "一个年轻女生" \
+  --scene 城市街头 \
+  --count 10 \
+  --strength wild \
+  --seed 42
+```
+
+## CLI：固定一部分再随机
+
+```bash
+python scripts/generate_random.py "一个短发中国女生" \
+  --scene 广州 \
+  --lens 35mm \
+  --count 8 \
+  --strength strong \
+  --seed 42
 ```
 
 ## Reference DNA
 
-上传参考图后可以说：
+参考图分析规则：`references/reference_dna.md`
 
-```text
-使用 $shot-photo，学这张图的拍法，不复制人物和服装。
-换成广州盛夏街头的一位短发中国女生，9:16，生成 4 组。
-```
+三种内部模式：
 
-Shot Photo 会提取主体占比、摄影距离、可能焦段、机位高度、摄影师与主体关系、构图重心、空间层次、光线结构、主色块、动作阶段、真实感来源和情绪机制。
-
-三种模式：
-
-1. `structure_transfer`：学拍法，换内容。默认推荐。
-2. `mood_transfer`：只迁移情绪机制、光线、距离和色块。
-3. `close_rebuild`：明确要求复刻时，尽量保留构图、机位、光线和主要关系。
-
-详细规则见 `references/reference_dna.md`。
+1. `structure_transfer`
+2. `mood_transfer`
+3. `close_rebuild`
 
 ## Personal Taste
 
-初始档案保持中性：
+初始档案：
 
 ```bash
 cp examples/siran_taste.json taste_profile.json
 ```
 
-记录反馈：
+反馈更新：
 
 ```bash
 python scripts/update_taste.py taste_profile.json \
   --like lenses=35mm \
   --strong-like compositions=人物放在极侧边 \
-  --like camera_positions=从门框后方拍 \
   --dislike imperfections=轻微数码噪点
 ```
 
-支持四级反馈：
-
-```text
-strong-like      +2
-like             +1
-dislike          -1
-strong-dislike   -2
-```
-
-每项保存 `score (-3~+3)`、`evidence` 和 `last_feedback`。单次评价不会永久锁死风格，重复证据才逐渐提高影响。
-
-带个人偏好生成：
-
-```bash
-python scripts/generate.py "一位短发中国女性" \
-  --intent "广州盛夏生活感" \
-  --taste-profile taste_profile.json \
-  --count 6 \
-  --seed 42
-```
-
-如果用户只说“喜欢这张”，不要把整张图所有变量全部奖励；先找 2–4 个最可能造成喜欢的摄影决策再回灌。
-
-详细规则见 `references/personal_taste.md`。
+详细规则：`references/personal_taste.md`
 
 ## Series Director
 
-v0.4 新增真正的组照导演层。
-
-用户说：
+6 张默认节奏：
 
 ```text
-做一套 6 张连续组照。
-同一个短发中国女生，广州盛夏，同一套衣服，同一地点同一时间段。
-不要 6 张独立好图，要有开场、靠近、动作、停顿和离场。
+建立空间
+→ 进入人物
+→ 动作发生
+→ 靠近情绪
+→ 重新拉开
+→ 离场收束
 ```
 
-系统默认设计：
-
-```text
-01 建立空间
-02 进入人物
-03 动作发生
-04 靠近情绪
-05 重新拉开
-06 离场收束
-```
-
-九张组照则使用：
-
-```text
-01 建立空间
-02 人物进入
-03 第一次动作
-04 情绪近景
-05 细节停顿
-06 空间过渡
-07 第二次动作
-08 情绪回落
-09 离场结尾
-```
-
-Series Director 默认锁定：
-
-- 同一人物身份
-- 同一发型、年龄感、体型比例
-- 同一服装，或最多一次合理换装
-- 同一 Photographer Profile
-- 同一主色彩世界
-- 一个主地点，或 2–3 个可自然衔接的地点
-- 同一时间段，或自然渐进的 Time Arc
-
-### CLI：单地点 6 张
+可复现规划：
 
 ```bash
 python scripts/generate_series.py "一位短发中国女性" \
   --count 6 \
   --intent "广州盛夏生活感" \
   --series-mode single-location \
-  --time-arc static \
   --seed 42
 ```
 
-### CLI：9 张 micro-journey
-
-```bash
-python scripts/generate_series.py "一位中国女性" \
-  --count 9 \
-  --profile 雨夜电影 \
-  --intent "雨后城市短途步行" \
-  --series-mode micro-journey \
-  --time-arc progressive \
-  --seed 42
-```
-
-### 带 Personal Taste 的系列
-
-```bash
-python scripts/generate_series.py "一位短发中国女性" \
-  --count 6 \
-  --intent "广州夏日街头" \
-  --taste-profile taste_profile.json \
-  --series-mode single-location \
-  --seed 42
-```
-
-Series Director 会保留个人偏好，但不会让偏好把所有照片压成同一个焦段、同一种构图。
-
-详细规则见 `references/series_director.md`，调用案例见 `examples/SERIES.md`。
-
-## 为什么 Series Director 和 Batch Diversity 不一样
-
-Batch Diversity 解决的是“不要重复”。
-
-Series Director 解决的是：
-
-```text
-这一组为什么从这张开始？
-为什么此时靠近人物？
-什么时候需要动作？
-什么时候重新拉远？
-最后一张为什么像结束？
-```
-
-因此系列中的差异不是随机差异，而是叙事与观看节奏。
+详细规则：`references/series_director.md`
 
 ## 版本演进
 
 ### v0.1 Photography Director
 
-建立 Anchor Budget、Conditional Photography、Moment First、Batch Diversity、GPT Image Native Prompt 和 Quality Gate。
+建立 Anchor Budget、Conditional Photography、Moment First、Batch Diversity 和 GPT Image Prompt。
 
 ### v0.2 Reference DNA
 
-加入参考图摄影 DNA、三种迁移模式、多图共同 DNA、No Fake EXIF 与 Reference Anchor Budget。
+加入参考图摄影 DNA、三种迁移模式、No Fake EXIF。
 
 ### v0.3 Personal Taste
 
-加入个人审美 Schema、反馈更新器、偏好证据计数、概率权重生成，以及 Reference DNA → 结果反馈 → Personal Taste 的闭环。
+加入喜欢 / 不喜欢反馈和个人审美概率权重。
 
 ### v0.4 Series Director
 
-加入连续组照规划、6/9 张镜头谱、Identity / Wardrobe / Palette Continuity、single-location / micro-journey、Time Arc 与系列质量门。
+加入 6 / 9 张连续组照、地点与时间连续性、镜头节奏。
 
-下一阶段适合继续做：更强的人物身份一致性、系列参考图 Character Sheet，以及从一批历史精选图自动蒸馏 `Siran Photographer Profile`。
+### v0.5 Random Discovery
+
+恢复并强化最初 VibeShot 式随机探索：跨 Photographer Profile、宽泛场景自动展开、全批次强去重、Taste 去收敛，以及 strong / wild 两级高随机。
+
+当前目标：
+
+> 普通模式像摄影师，系列模式像一次真实拍摄，随机模式像一台懂摄影的创意老虎机。
