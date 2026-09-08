@@ -114,7 +114,31 @@ jobs:
           assert c['scenes'] >= 6, c
           assert c['shot_sizes'] >= 3, c
           assert c['camera_positions'] >= 4, c
+          assert c['observation_relationships'] >= 6, c
           assert c['compositions'] >= 4, c
+          prompts=[x['prompt'] for x in d['results']]
+          assert all(len(p) < 420 for p in prompts), [len(p) for p in prompts]
+          assert len(set(prompts)) == len(prompts)
+          PY
+
+      - name: Smoke test wild random director
+        run: |
+          python scripts/generate_random.py "一个年轻女生" \
+            --scene 校园 \
+            --count 8 \
+            --strength wild \
+            --seed 7 \
+            --format json > /tmp/random-wild.json
+          python -m json.tool /tmp/random-wild.json > /dev/null
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/random-wild.json', encoding='utf-8'))
+          c=d['coverage']
+          assert c['profiles'] >= 4, c
+          assert c['scenes'] >= 6, c
+          assert c['observation_relationships'] >= 6, c
+          prompts=[x['prompt'] for x in d['results']]
+          assert all(len(p) < 360 for p in prompts), [len(p) for p in prompts]
           PY
 
       - name: Smoke test random taste dilution
@@ -126,4 +150,4 @@ jobs:
             --taste-profile /tmp/taste.json \
             --seed 7 > /tmp/random-wild.md
           test -s /tmp/random-wild.md
-          grep -q "Random Discovery: wild" /tmp/random-wild.md
+          grep -q "Random Discovery: wild · Images 2.5" /tmp/random-wild.md
