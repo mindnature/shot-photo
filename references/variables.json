@@ -1,0 +1,112 @@
+{
+  "version": "0.1",
+  "expressions": [
+    "冷淡放空", "轻轻眯眼", "被阳光刺到的自然表情", "似笑非笑", "低头走神", "闭眼感受风", "突然回头时的短暂停顿", "抬眼看远处", "刚笑完还没完全收住", "轻微皱眉", "若有所思", "短暂失神", "欲言又止", "听见声音后分神", "被风吹得睁不开眼", "微微抿嘴", "低头忍笑", "有点困倦", "被晒得轻微烦躁", "完全没有注意到镜头"
+  ],
+  "wardrobe_styles": [
+    "低饱和日常私服", "白开水高级感", "韩系轻熟私服", "法式慵懒私服", "极简冷淡风", "都市通勤风", "清冷文艺风", "轻运动休闲风", "海边假日风", "夏日轻复古", "知识分子风", "居家松弛感", "中性简洁穿搭", "轻复古旅行装", "城市周末私服"
+  ],
+  "scenes": [
+    {"id": "S01", "name": "盛夏荷塘", "tags": ["outdoor", "water", "summer", "nature"]},
+    {"id": "S02", "name": "竹林水边", "tags": ["outdoor", "water", "nature", "shade"]},
+    {"id": "S03", "name": "南方老宅窗边", "tags": ["indoor", "window", "old_house"]},
+    {"id": "S04", "name": "白墙庭院", "tags": ["outdoor", "architecture", "reflective_wall"]},
+    {"id": "S05", "name": "乡间浅溪", "tags": ["outdoor", "water", "nature"]},
+    {"id": "S06", "name": "湖边木栈道", "tags": ["outdoor", "water", "walkway"]},
+    {"id": "S07", "name": "芦苇湖边", "tags": ["outdoor", "water", "nature"]},
+    {"id": "S08", "name": "城市天台", "tags": ["outdoor", "urban", "open_space"]},
+    {"id": "S09", "name": "顶层停车场", "tags": ["outdoor", "urban", "architecture"]},
+    {"id": "S10", "name": "老公寓楼梯间", "tags": ["indoor", "stairs", "architecture", "tight_space"]},
+    {"id": "S11", "name": "玻璃建筑走廊", "tags": ["indoor", "glass", "architecture"]},
+    {"id": "S12", "name": "雨后公交站", "tags": ["outdoor", "urban", "rain"]},
+    {"id": "S13", "name": "便利店冰柜前", "tags": ["indoor", "store", "cool_light", "tight_space"]},
+    {"id": "S14", "name": "街角便利店门口", "tags": ["outdoor", "urban", "store", "night_possible"]},
+    {"id": "S15", "name": "雨后老街小巷", "tags": ["outdoor", "urban", "rain", "old_city"]},
+    {"id": "S16", "name": "公交车后排", "tags": ["indoor", "vehicle", "tight_space", "window"]},
+    {"id": "S17", "name": "老式火车车厢", "tags": ["indoor", "vehicle", "window"]},
+    {"id": "S18", "name": "渡轮甲板", "tags": ["outdoor", "travel", "water", "wind"]},
+    {"id": "S19", "name": "临海公路休息站", "tags": ["outdoor", "travel", "coast", "open_space"]},
+    {"id": "S20", "name": "海边小卖部", "tags": ["outdoor", "travel", "coast", "store"]},
+    {"id": "S21", "name": "旅馆阳台", "tags": ["outdoor", "travel", "balcony"]},
+    {"id": "S22", "name": "靠窗咖啡店", "tags": ["indoor", "window", "public_space"]},
+    {"id": "S23", "name": "卧室窗边", "tags": ["indoor", "window", "private_space"]},
+    {"id": "S24", "name": "旧木桌旁的厨房", "tags": ["indoor", "home", "tight_space"]},
+    {"id": "S25", "name": "居民楼阳台", "tags": ["outdoor", "home", "balcony"]},
+    {"id": "S26", "name": "现代美术馆长廊", "tags": ["indoor", "architecture", "large_space"]},
+    {"id": "S27", "name": "混凝土楼梯", "tags": ["indoor", "architecture", "stairs"]},
+    {"id": "S28", "name": "河堤边", "tags": ["outdoor", "urban", "water", "open_space"]},
+    {"id": "S29", "name": "旧城区市场", "tags": ["outdoor", "urban", "crowd", "documentary"]},
+    {"id": "S30", "name": "树荫下长椅", "tags": ["outdoor", "nature", "shade", "public_space"]}
+  ],
+  "moments": [
+    "刚刚坐下", "正准备起身", "低头整理衣摆", "抬手扶帽子", "风刚吹起头发", "弯腰触碰水面", "赤脚踩过浅水", "沿栈道缓慢行走", "坐在边缘短暂发呆", "侧身看向远处", "头发被吹乱后抬手整理", "低头洗水果", "靠着窗边快要睡着", "从阴影走进阳光", "手扶栏杆停了一下", "坐在台阶边轻轻晃腿", "用手边物体挡太阳", "蹲在水边正准备站起", "经过镜头时被偶然捕捉", "正在扎头发", "刚喝完一口冰水", "用手背擦汗", "拉开窗帘", "推开玻璃门", "从车上下来", "起身起到一半", "低头调整鞋带", "从冰柜里拿出饮料", "走到一半突然停住", "刚跨过一滩水", "正在收伞", "靠墙短暂休息", "准备离开画面", "看路牌时短暂停住", "刚走出商店门口", "等红灯时看向另一侧", "接电话时避让路人", "上楼梯时回头", "坐下后把包放到旁边", "伸手推开半扇门"
+  ],
+  "shot_sizes": [
+    "脸部局部超近景", "肩部特写", "胸像近景", "腰部中近景", "膝上中景", "半身环境人像", "全身环境人像", "人物小比例大环境"
+  ],
+  "lenses": [
+    {"name": "24mm", "tags": ["ultra_wide", "environment", "close_possible"]},
+    {"name": "28mm", "tags": ["wide", "environment", "street"]},
+    {"name": "35mm", "tags": ["environment", "street", "natural"]},
+    {"name": "50mm", "tags": ["natural", "portrait", "indoor"]},
+    {"name": "85mm", "tags": ["portrait", "compression", "distance"]},
+    {"name": "105mm", "tags": ["compression", "distance", "observational"]},
+    {"name": "小型数码相机等效广角", "tags": ["compact_camera", "casual", "wide"]}
+  ],
+  "camera_positions": [
+    "贴近水面的极低机位", "贴地低机位", "人物腰部以下的低机位", "自然平视抓拍", "轻微俯拍", "明显高位俯拍", "从楼梯上方向下观察", "隔着植物侧拍", "从门框后方拍", "从窗外向室内拍", "从车厢前排远距离拍", "从人物背后跟拍", "从肩后越肩观察", "从桌面高度拍", "从椅背后方拍", "从楼梯扶手之间拍", "从玻璃门另一侧拍", "从半开的车门后拍", "从窗帘后方拍", "从树干后方拍", "从栏杆缝隙拍", "摄影师边走边拍", "相机还没完全举稳时按下快门", "街对面远距离观察", "人群之间寻找空隙拍摄"
+  ],
+  "compositions": [
+    "极端留白", "大面积天空", "大面积水面", "人物压在画面底部三分之一", "人物放在极侧边", "中心附近但被真实前景轻微遮挡", "不对称构图", "对角线构图", "透视引导线构图", "巨大自然物与人物形成尺度反差", "人物小比例环境肖像", "前景占画面三分之一", "从植物缝隙观察", "门框式框景", "窗框式框景", "建筑几何切割画面", "人物只占画面很小一角", "地面占画面大半", "天空占画面大半", "人物即将走出画面", "只展示人物局部但保留身份线索", "画面被真实阴影切开", "玻璃反射与真人局部重叠", "强烈近大远小", "多层街道空间"
+  ],
+  "foregrounds": [
+    {"name": "完全失焦的荷花或叶片", "tags": ["nature", "water"]},
+    {"name": "巨大荷叶边缘", "tags": ["nature", "water"]},
+    {"name": "树叶或竹叶", "tags": ["nature", "outdoor"]},
+    {"name": "白色窗帘", "tags": ["indoor", "window"]},
+    {"name": "玻璃反射", "tags": ["glass", "window", "urban"]},
+    {"name": "水面反光", "tags": ["water", "outdoor"]},
+    {"name": "门框", "tags": ["indoor", "architecture"]},
+    {"name": "窗框", "tags": ["window", "architecture"]},
+    {"name": "汽车玻璃", "tags": ["vehicle", "urban"]},
+    {"name": "公交座椅边缘", "tags": ["vehicle", "indoor"]},
+    {"name": "栏杆", "tags": ["architecture", "outdoor"]},
+    {"name": "白墙边缘", "tags": ["architecture", "reflective_wall"]},
+    {"name": "湿润树枝", "tags": ["rain", "nature"]},
+    {"name": "椅背或桌角", "tags": ["indoor", "home", "public_space"]},
+    {"name": "晾晒衣物边缘", "tags": ["home", "balcony"]},
+    {"name": "雨伞边缘", "tags": ["rain", "outdoor"]},
+    {"name": "路过行人的虚影", "tags": ["crowd", "urban", "documentary"]},
+    {"name": "车窗水滴", "tags": ["rain", "vehicle", "window"]},
+    {"name": "建筑柱子或墙角", "tags": ["architecture", "urban"]},
+    {"name": "模糊植物", "tags": ["nature", "outdoor", "indoor"]}
+  ],
+  "lighting": [
+    {"name": "盛夏正午硬光", "tags": ["outdoor", "summer", "sunny"]},
+    {"name": "树荫斑驳光", "tags": ["outdoor", "shade", "nature"]},
+    {"name": "午后侧逆光", "tags": ["outdoor", "sunny"]},
+    {"name": "傍晚低角度逆光", "tags": ["outdoor", "sunset"]},
+    {"name": "雨后清透散射光", "tags": ["outdoor", "rain"]},
+    {"name": "窗边高反差自然光", "tags": ["indoor", "window"]},
+    {"name": "水面反射补光", "tags": ["water", "outdoor"]},
+    {"name": "白墙反射光", "tags": ["reflective_wall", "architecture"]},
+    {"name": "穿过树叶的细碎光影", "tags": ["nature", "outdoor"]},
+    {"name": "人物处在明暗交界", "tags": ["architecture", "outdoor", "indoor"]},
+    {"name": "楼梯间顶部自然光", "tags": ["stairs", "indoor"]},
+    {"name": "便利店冷白灯", "tags": ["store", "indoor", "cool_light"]},
+    {"name": "冰柜冷光", "tags": ["store", "indoor", "cool_light"]},
+    {"name": "玻璃建筑反射光", "tags": ["glass", "architecture"]},
+    {"name": "夏夜路灯", "tags": ["outdoor", "night"]},
+    {"name": "黄昏弱直闪", "tags": ["outdoor", "sunset", "flash"]},
+    {"name": "CCD直闪", "tags": ["flash", "night", "compact_camera"]},
+    {"name": "车窗切割光", "tags": ["vehicle", "window"]},
+    {"name": "遮阳棚下柔光", "tags": ["outdoor", "store", "shade"]},
+    {"name": "室内暗部与窗外高亮的大反差自然光", "tags": ["indoor", "window"]}
+  ],
+  "palettes": [
+    "蓝天+翠绿+白色", "深绿+奶白+肤色", "水蓝+白+灰", "青绿+米白+少量粉色", "深蓝夜色+冷白灯光", "雨后灰蓝+湿润绿色", "海蓝+白+肤色", "木色+奶白+深绿", "暖灰+米白+肤色", "冷灰+白+微弱绿色", "混凝土灰+白+肤色", "低饱和现实街道色"
+  ],
+  "imperfections": [
+    "轻微运动模糊", "局部失焦", "玻璃反射叠影", "真实镜头眩光", "边缘高光轻微溢出", "小范围自然过曝", "浅景深但保留环境信息", "远距离压缩感", "近距离广角透视", "自然颗粒", "轻微数码噪点", "便携式相机即时感", "边缘路人或物体偶然进入画面", "轻微曝光不均", "轻微倾斜的手持瞬间"
+  ]
+}
