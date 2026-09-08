@@ -1,17 +1,23 @@
 # Shot Photo
 
-面向 GPT Image 的 AI 摄影导演 Skill。
+面向 GPT Image / Images 2.5 的 AI 摄影导演 Skill。
 
-当前版本：`v0.5 Random Discovery`。
+当前版本：`v0.6 Images 2.5 Random Director`。
 
-Shot Photo 不是摄影 Prompt 词库。它同时做两件事：
+Shot Photo 不是摄影 Prompt 词库。它同时解决四类问题：
 
-1. 帮不会摄影的人自动完成焦段、机位、构图、光线和瞬间设计；
-2. 保留并强化随机探索能力，让同一个简单需求产生真正不同的摄影方案。
+1. 小白不会摄影，也能只用自然语言得到可用照片；
+2. Random Discovery 保留并强化“下一张不知道会是什么”的探索感；
+3. Reference DNA 能学参考图的摄影关系；
+4. Series Director 能把多张照片组织成一次真实拍摄。
 
 核心原则：
 
 > 不用规则替代随机，而是让随机也懂摄影。
+
+> Images 2.5 Prompt 要短、准、有空间：内部规划可以复杂，最终提示词不要把所有变量写满。
+
+---
 
 ## 小白最快上手
 
@@ -25,9 +31,105 @@ Shot Photo 不是摄影 Prompt 词库。它同时做两件事：
 
 你不需要指定 35mm、低机位、构图、光线或 Photographer Profile。
 
-Shot Photo 会自动决定这些摄影变量。
+Shot Photo 会自动决定摄影变量。
 
-## 四种常用方式
+---
+
+## v0.6 针对 Images 2.5 做了什么
+
+### 1. Prompt 更短
+
+以前随机规划虽然差异很大，但最终仍会把焦段、景别、机位、构图、前景、光线、色彩、缺陷全部写进同一套长模板，容易把随机重新收敛。
+
+v0.6 改成：
+
+```text
+主体
++ 子场景
++ 一个进行中瞬间
++ 一个观察关系
++ 一个构图亮点
++ 一个光线亮点
++ 可选一个真实感线索
+```
+
+Random Strong / Wild 使用独立的短 Prompt 渲染器。
+
+### 2. 随机层级上移
+
+随机不只随机动作，而是随机整个“拍法世界”：
+
+```text
+Photographer Profile
+→ Scene Cluster
+→ Observation Relationship
+→ Camera Language
+→ Moment / Light / Composition
+```
+
+新增 Observation Relationship，例如：
+
+- 同行同学顺手拍到；
+- 中远距离观察；
+- 路过者偶然记录；
+- 人群边缘抓拍；
+- 门框后观察；
+- 隔着玻璃观察；
+- 台阶下方低位观察；
+- 楼梯 / 栏杆上方观察；
+- 让人物经过镜头而不是停下来摆拍。
+
+### 3. Random 不再默认人物连续
+
+如果用户说：
+
+```text
+校园学生，随机 8 张
+```
+
+系统不会自动锁：
+
+- 上一张的脸；
+- 上一张的发型；
+- 上一套服装；
+- 上一个地点；
+- 上一种色调。
+
+只有用户明确要求“同一个人 / 同一套写真 / 连续组照”时才锁身份连续性。
+
+### 4. Personal Taste 更弱
+
+```text
+Standard：Taste 正常参与
+Random balanced：Taste 可参与
+Random strong：Taste 默认关闭，明确要求时最多弱加载
+Random wild：Taste 基本退出
+```
+
+避免用久以后随机模式又收敛到熟悉的 35mm、同一构图和同一种光线。
+
+### 5. Anchor Budget 更开放
+
+```text
+Standard
+Hard Anchors ≤ 4
+Soft Anchors ≤ 4
+Free Variables ≥ 4
+
+Random Strong
+Hard Anchors ≤ 3
+Soft Anchors ≤ 3
+Free Variables ≥ 6
+
+Random Wild
+Hard Anchors ≤ 2
+Soft Anchors ≤ 2
+Free Variables ≥ 8
+```
+
+---
+
+## 四种最常用方式
 
 ### 1. 普通拍
 
@@ -36,7 +138,7 @@ Shot Photo 会自动决定这些摄影变量。
 一个短发中国女生，广州盛夏，生活感，生成 6 张。
 ```
 
-系统会保持相对统一的摄影方向，同时拉开镜头差异。
+系统保持相对统一的摄影方向，同时拉开镜头差异。
 
 ### 2. 随机拍
 
@@ -50,6 +152,7 @@ Random Discovery 会主动随机：
 
 - Photographer Profile
 - 场景子区域
+- Observation Relationship
 - 动作
 - 表情
 - 服装
@@ -60,11 +163,10 @@ Random Discovery 会主动随机：
 - 前景
 - 光线
 - 色彩
-- 摄影缺陷
 
-“校园”这种宽泛场景还会自动展开成图书馆、教学楼、操场、食堂、自行车棚、楼梯、空教室、便利店、树荫路等不同子场景。
+“校园”这种宽泛场景还会自动展开成图书馆、教学楼、操场、食堂、自行车棚、楼梯、空教室、便利店、树荫路、宿舍楼下、篮球场边、草坪等不同子场景。
 
-如果想更随机：
+更随机：
 
 ```text
 越随机越好，什么摄影风格都试，给我惊喜。
@@ -100,81 +202,92 @@ Random Discovery 会主动随机：
 
 这时进入 Series Director，而不是 Random Discovery。
 
-## Random Discovery 为什么和原来的随机不同
+---
 
-Random Discovery 不是把所有变量独立抽签。
+## Random Discovery 为什么不是“纯乱抽”
 
 正确流程：
 
 ```text
 随机场景
-→ 随机一个与场景兼容的焦段
+→ 在场景内选择兼容焦段
 → 随机兼容景别
 → 随机合理机位
+→ 随机观察关系
 → 随机构图
 → 随机真实前景
 → 随机可解释光线
 ```
 
-所以它保留“下一张不知道会是什么”的惊喜，同时避免明显不合理的摄影组合。
+所以它保留“开盲盒”的惊喜，同时避免明显不合理的摄影组合。
 
-Random 模式还会检查整个批次，而不是只检查相邻两张，减少“8 张看起来其实是一张图换动作”的问题。
+Random 还会检查整个批次，而不是只检查相邻两张，减少“8 张其实是一张图换动作”的问题。
 
 详细规则：`references/random_discovery.md`
 
 实际示例：`examples/RANDOM.md`
 
-## 随机强度
+---
 
-普通用户不用记内部参数，直接用自然语言即可：
+## Random 强度
+
+普通用户不用记内部参数。
 
 ```text
 随机一点
 ```
 
-整体气质相对稳定，但镜头变化更大。
+对应 balanced：整体气质相对稳定，但镜头变化更大。
 
 ```text
 随机拍几张 / 差异大一点 / 给我惊喜
 ```
 
-默认强随机，每张可以切换 Photographer Profile。
+对应 strong：每张可以切换 Photographer Profile、Scene Cluster 和 Observation Relationship。
 
 ```text
 放飞一点 / 越随机越好 / 什么风格都试
 ```
 
-进入高随机探索，尽量减少历史偏好带来的收敛。
+对应 wild：最大化探索，减少历史偏好和连续性约束。
 
-## Random 与 Personal Taste
+---
 
-Personal Taste 不应该变成审美信息茧房。
+## Images 2.5 Prompt 规则
 
-因此：
+最终 Prompt 不再机械写满后台字段。
 
-```text
-普通生成：Taste 正常参与
-Random strong：探索优先，Taste 默认关闭或弱参与
-Random wild：Taste 基本退出
-```
+### Standard
 
-只有用户明确说“随机，但参考我的偏好”时，随机模式才弱加载 Personal Taste。
-
-## Random 与 Series 的区别
+通常保留：
 
 ```text
-随机拍几张
-→ 每张可以完全不同
-→ Random Discovery
+主体
+场景
+瞬间
+观察关系
+1 个构图亮点
+1 个光线亮点
+0–1 个真实感线索
 ```
+
+### Random Strong
+
+Prompt 更短，让 Images 2.5 保留更多发明空间。
+
+### Random Wild
+
+只锁用户 Hard Anchor + 一个鲜明子场景 + 一个观察关系 + 一个未完成动作 + 一个真实光线逻辑。
+
+负面约束默认压缩成一句：
 
 ```text
-拍一套 / 九宫格 / 同一次写真
-→ 人物、服装、时间、地点连续
-→ Series Director
+避免影楼式精修、塑料皮肤、过度摆拍和无理由杂乱背景，保持真实可信的生活摄影感。
 ```
 
-如果用户说“拍一套，但镜头随机一点”，Series Continuity 仍然保留，只随机镜头层。
+详细规则：`references/gpt_image_prompting.md`
+
+---
 
 ## 目录
 
@@ -211,12 +324,16 @@ shot-photo/
     └── siran_taste.json
 ```
 
+---
+
 ## 安装
 
 ```bash
 mkdir -p ~/.codex/skills
 cp -R shot-photo ~/.codex/skills/
 ```
+
+---
 
 ## CLI：强随机
 
@@ -249,15 +366,19 @@ python scripts/generate_random.py "一个短发中国女生" \
   --seed 42
 ```
 
+---
+
 ## Reference DNA
 
 参考图分析规则：`references/reference_dna.md`
 
-三种内部模式：
+内部模式：
 
 1. `structure_transfer`
 2. `mood_transfer`
 3. `close_rebuild`
+
+---
 
 ## Personal Taste
 
@@ -277,6 +398,8 @@ python scripts/update_taste.py taste_profile.json \
 ```
 
 详细规则：`references/personal_taste.md`
+
+---
 
 ## Series Director
 
@@ -303,6 +426,8 @@ python scripts/generate_series.py "一位短发中国女性" \
 
 详细规则：`references/series_director.md`
 
+---
+
 ## 版本演进
 
 ### v0.1 Photography Director
@@ -323,8 +448,12 @@ python scripts/generate_series.py "一位短发中国女性" \
 
 ### v0.5 Random Discovery
 
-恢复并强化最初 VibeShot 式随机探索：跨 Photographer Profile、宽泛场景自动展开、全批次强去重、Taste 去收敛，以及 strong / wild 两级高随机。
+恢复并强化 VibeShot 式随机探索：跨 Photographer Profile、宽泛场景自动展开、全批次强去重、Taste 去收敛。
+
+### v0.6 Images 2.5 Random Director
+
+针对 Images 2.5 重构 Prompt：缩短最终指令、减少穷尽式控制、增加 Observation Relationship、进一步弱化 Random Taste、Random Strong / Wild 使用独立 Prompt 渲染器，让随机差异真正传递到最终生图。
 
 当前目标：
 
-> 普通模式像摄影师，系列模式像一次真实拍摄，随机模式像一台懂摄影的创意老虎机。
+> Standard 要稳，Series 要连，Reference 要会学，Random 要敢变；Images 2.5 Prompt 要短、准、有空间。
