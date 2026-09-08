@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""Shot Photo v0.1 — deterministic photography shot planner for GPT Image.
+"""Shot Photo v0.3 — taste-aware photography shot planner for GPT Image.
 
 This script does not call an image API. It selects a coherent photography plan from
-Shot Photo's reference libraries, then renders a GPT Image-friendly natural-language
-prompt. The Skill itself may reason beyond this script; the script is provided for
-repeatable batches, seeds, testing and future preference learning.
+Shot Photo's reference libraries, applies optional personal taste weights, and renders
+a GPT Image-friendly natural-language prompt.
+
+Personal taste is probabilistic, not a hard preset: positive feedback increases the
+chance of seeing a photographic choice again; negative feedback suppresses it while
+preserving a small amount of exploration.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
@@ -24,6 +28,41 @@ def load_json(name: str) -> Dict[str, Any]:
         return json.load(f)
 
 
+def load_taste(path: str | None) -> Dict[str, Any] | None:
+    if not path:
+        return None
+    taste_path = Path(path)
+    if not taste_path.is_absolute():
+        taste_path = Path.cwd() / taste_path
+    with taste_path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    data.setdefault("dimensions", {})
+    return data
+
+
+def taste_record(taste: Dict[str, Any] | None, dimension: str, value: str) -> Dict[str, Any] | None:
+    if not taste:
+        return None
+    return taste.get("dimensions", {}).get(dimension, {}).get(value)
+
+
+def taste_multiplier(taste: Dict[str, Any] | None, dimension: str, value: str) -> float:
+    """Convert learned score/evidence to a bounded probability multiplier.
+
+    A single signal matters but cannot dominate. Around four pieces of evidence are
+    enough for the full learned score to take effect. Even score=-3 retains a small
+    exploration probability rather than acting as a ban.
+    """
+    record = taste_record(taste, dimension, value)
+    if not record:
+        return 1.0
+    score = max(-3.0, min(3.0, float(record.get("score", 0.0))))
+    evidence = max(0, int(record.get("evidence", 0)))
+    confidence = 0.45 + 0.55 * min(evidence / 4.0, 1.0)
+    effective_score = score * confidence
+    return max(0.22, min(3.6, math.exp(0.42 * effective_score)))
+
+
 def pick(seq: Sequence[Any], rng: random.Random) -> Any:
     return seq[rng.randrange(len(seq))]
 
@@ -34,19 +73,45 @@ def weighted_preference(
     rng: random.Random,
     value_getter=lambda x: x,
     boost: float = 4.0,
+    taste: Dict[str, Any] | None = None,
+    taste_dimension: str | None = None,
 ) -> Any:
-    """Bias toward profile preferences without making them hard constraints."""
+    """Bias toward profile preferences and optional learned personal taste."""
     if not candidates:
         raise ValueError("No candidates available")
     preferred_set = set(preferred or [])
     weights = []
     for item in candidates:
-        value = value_getter(item)
-        weights.append(boost if value in preferred_set else 1.0)
+        value = str(value_getter(item))
+        weight = boost if value in preferred_set else 1.0
+        if taste_dimension:
+            weight *= taste_multiplier(taste, taste_dimension, value)
+        weights.append(max(0.01, weight))
     return rng.choices(list(candidates), weights=weights, k=1)[0]
 
 
-def infer_profile(query: str, profiles: List[Dict[str, Any]]) -> Dict[str, Any]:
+def weighted_sample_unique(
+    candidates: Sequence[str],
+    count: int,
+    rng: random.Random,
+    taste: Dict[str, Any] | None,
+    dimension: str,
+) -> List[str]:
+    pool = list(candidates)
+    chosen: List[str] = []
+    for _ in range(min(count, len(pool))):
+        weights = [taste_multiplier(taste, dimension, str(item)) for item in pool]
+        item = rng.choices(pool, weights=weights, k=1)[0]
+        chosen.append(item)
+        pool.remove(item)
+    return chosen
+
+
+def infer_profile(
+    query: str,
+    profiles: List[Dict[str, Any]],
+    taste: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     q = query.lower()
     keyword_map = {
         "东方盛夏": ["盛夏", "荷塘", "竹林", "溪", "白墙", "夏日", "夏天"],
@@ -58,22 +123,41 @@ def infer_profile(query: str, profiles: List[Dict[str, Any]]) -> Dict[str, Any]:
         "CCD青春": ["ccd", "青春", "直闪", "数码相机", "朋友"],
         "建筑人像": ["建筑", "美术馆", "长廊", "楼梯", "几何"],
         "安静室内": ["室内", "窗边", "卧室", "书桌", "安静"],
-        "纪实街拍": ["街拍", "纪实", "市场", "街头", "路人"]
+        "纪实街拍": ["街拍", "纪实", "市场", "街头", "路人"],
     }
-    scores = {p["name"]: 0 for p in profiles}
+    lexical_scores = {p["name"]: 0.0 for p in profiles}
     for name, words in keyword_map.items():
         for word in words:
             if word.lower() in q:
-                scores[name] += 1
-    best = max(profiles, key=lambda p: scores.get(p["name"], 0))
-    if scores.get(best["name"], 0) == 0:
-        return next(p for p in profiles if p["name"] == "日常观察")
-    return best
+                lexical_scores[name] += 1.0
+
+    has_lexical_signal = max(lexical_scores.values(), default=0) > 0
+    ranked = []
+    for profile in profiles:
+        name = profile["name"]
+        score = lexical_scores.get(name, 0.0)
+        record = taste_record(taste, "profiles", name)
+        if record:
+            personal = float(record.get("score", 0.0))
+            evidence = int(record.get("evidence", 0))
+            confidence = min(evidence / 4.0, 1.0)
+            score += personal * confidence * (0.35 if has_lexical_signal else 0.7)
+        ranked.append((score, profile))
+
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    if ranked and ranked[0][0] > 0:
+        return ranked[0][1]
+    return next(p for p in profiles if p["name"] == "日常观察")
 
 
-def find_profile(value: str | None, profiles: List[Dict[str, Any]], query: str) -> Dict[str, Any]:
+def find_profile(
+    value: str | None,
+    profiles: List[Dict[str, Any]],
+    query: str,
+    taste: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     if not value:
-        return infer_profile(query, profiles)
+        return infer_profile(query, profiles, taste)
     value_lower = value.lower()
     for p in profiles:
         if value_lower in (p["id"].lower(), p["name"].lower()):
@@ -81,20 +165,27 @@ def find_profile(value: str | None, profiles: List[Dict[str, Any]], query: str) 
     raise SystemExit(f"Unknown profile: {value}")
 
 
-def scene_candidates(variables: Dict[str, Any], profile: Dict[str, Any], fixed_scene: str | None) -> List[Dict[str, Any]]:
+def scene_candidates(
+    variables: Dict[str, Any],
+    profile: Dict[str, Any],
+    fixed_scene: str | None,
+) -> List[Dict[str, Any]]:
     scenes = variables["scenes"]
     if fixed_scene:
         matches = [s for s in scenes if fixed_scene in s["name"] or s["name"] in fixed_scene]
         if matches:
             return matches
         return [{"id": "USER", "name": fixed_scene, "tags": []}]
+    return scenes
 
+
+def profile_scene_names(scenes: Sequence[Dict[str, Any]], profile: Dict[str, Any]) -> List[str]:
     preferred = profile.get("preferred_scenes", [])
-    matches = [
-        s for s in scenes
-        if any(pref in s["name"] or s["name"] in pref for pref in preferred)
+    return [
+        scene["name"]
+        for scene in scenes
+        if any(pref in scene["name"] or scene["name"] in pref for pref in preferred)
     ]
-    return matches or scenes
 
 
 def valid_lenses(
@@ -149,15 +240,36 @@ def build_shot(
     fixed_scene: str | None,
     fixed_lens: str | None,
     previous: List[Dict[str, str]],
+    taste: Dict[str, Any] | None = None,
 ) -> Dict[str, str]:
     scenes = scene_candidates(variables, profile, fixed_scene)
+    preferred_scene_names = profile_scene_names(scenes, profile)
 
-    for _ in range(40):
-        scene = pick(scenes, rng)
-        moment = pick(variables["moments"], rng)
-        expression = pick(variables["expressions"], rng)
-        wardrobe = pick(variables["wardrobe_styles"], rng)
-        shot_size = pick(variables["shot_sizes"], rng)
+    for _ in range(60):
+        scene = weighted_preference(
+            scenes,
+            preferred_scene_names,
+            rng,
+            value_getter=lambda x: x["name"],
+            taste=taste,
+            taste_dimension="scenes",
+        )
+        moment = weighted_preference(
+            variables["moments"], profile.get("moments", []), rng,
+            taste=taste, taste_dimension="moments",
+        )
+        expression = weighted_preference(
+            variables["expressions"], [], rng,
+            taste=taste, taste_dimension="expressions",
+        )
+        wardrobe = weighted_preference(
+            variables["wardrobe_styles"], [], rng,
+            taste=taste, taste_dimension="wardrobe_styles",
+        )
+        shot_size = weighted_preference(
+            variables["shot_sizes"], [], rng,
+            taste=taste, taste_dimension="shot_sizes",
+        )
 
         lenses = valid_lenses(variables["lenses"], scene, compatibility)
         if fixed_lens:
@@ -169,6 +281,8 @@ def build_shot(
                 profile.get("preferred_lenses", []),
                 rng,
                 value_getter=lambda x: x["name"],
+                taste=taste,
+                taste_dimension="lenses",
             )
 
         lens_rule = compatibility.get("lens_rules", {}).get(lens["name"], {})
@@ -179,23 +293,49 @@ def build_shot(
             variables["camera_positions"],
             profile.get("preferred_angles", []),
             rng,
+            taste=taste,
+            taste_dimension="camera_positions",
         )
         composition = weighted_preference(
             variables["compositions"],
             profile.get("composition", []),
             rng,
+            taste=taste,
+            taste_dimension="compositions",
         )
-        foreground = pick(foreground_candidates(variables["foregrounds"], scene), rng)["name"]
+        foreground_item = weighted_preference(
+            foreground_candidates(variables["foregrounds"], scene),
+            [],
+            rng,
+            value_getter=lambda x: x["name"],
+            taste=taste,
+            taste_dimension="foregrounds",
+        )
+        foreground = foreground_item["name"]
         light = weighted_preference(
             valid_lighting(variables["lighting"], scene, compatibility),
             profile.get("lighting", []),
             rng,
             value_getter=lambda x: x["name"],
+            taste=taste,
+            taste_dimension="lighting",
         )["name"]
-        palette = weighted_preference(variables["palettes"], profile.get("palette", []), rng)
+        palette = weighted_preference(
+            variables["palettes"],
+            profile.get("palette", []),
+            rng,
+            taste=taste,
+            taste_dimension="palettes",
+        )
 
         imperfection_count = rng.choices([0, 1, 2], weights=[1, 6, 3], k=1)[0]
-        imperfections = rng.sample(variables["imperfections"], k=imperfection_count) if imperfection_count else []
+        imperfections = (
+            weighted_sample_unique(
+                variables["imperfections"], imperfection_count, rng, taste, "imperfections"
+            )
+            if imperfection_count
+            else []
+        )
 
         shot = {
             "scene": scene["name"],
@@ -257,6 +397,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int)
     parser.add_argument("--format", choices=["markdown", "json"], default="markdown")
     parser.add_argument("--intent", default="", help="Free-form intent used for profile inference")
+    parser.add_argument(
+        "--taste-profile",
+        help="Path to a Personal Taste JSON profile, e.g. examples/siran_taste.json",
+    )
     args = parser.parse_args()
 
     if not 1 <= args.count <= 30:
@@ -265,8 +409,9 @@ def main() -> None:
     variables = load_json("variables.json")
     compatibility = load_json("compatibility.json")
     profiles = load_json("photographer_profiles.json")["profiles"]
+    taste = load_taste(args.taste_profile)
     query = " ".join(filter(None, [args.subject, args.scene, args.intent]))
-    profile = find_profile(args.profile, profiles, query)
+    profile = find_profile(args.profile, profiles, query, taste)
     rng = random.Random(args.seed)
 
     shots: List[Dict[str, str]] = []
@@ -280,6 +425,7 @@ def main() -> None:
                 args.scene,
                 args.lens,
                 shots,
+                taste,
             )
         )
 
@@ -287,6 +433,7 @@ def main() -> None:
         {
             "index": i + 1,
             "profile": profile["name"],
+            "taste_profile": taste.get("name") if taste else None,
             "plan": shot,
             "prompt": render_prompt(shot, args.subject, args.ratio, profile),
         }
@@ -297,7 +444,10 @@ def main() -> None:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
-    print(f"Profile: {profile['name']}\n")
+    print(f"Profile: {profile['name']}")
+    if taste:
+        print(f"Taste: {taste.get('name', 'Personal Taste')} · samples={taste.get('sample_count', 0)}")
+    print()
     for item in result:
         print(f"### {item['index']:02d}\n")
         print(item["prompt"])
