@@ -11,21 +11,21 @@ Shot Photo 不把摄影当成 Prompt 词库，而是把创作拆成：
 → Reference DNA（如有）
 → Personal Taste（如有）
 → 摄影兼容性
-→ 批次镜头设计
+→ Series Director / Batch Diversity
 → GPT Image Prompt
 → Quality Gate
 ```
 
-当前版本：`v0.3 Personal Taste`。
+当前版本：`v0.4 Series Director`。
 
 ## 核心能力
 
 - 主要服务 GPT Image，使用完整自然语言而不是参数堆砌
 - 先判断摄影逻辑，再选择焦段、机位、构图、前景、光线和瞬间
-- 同批作品保持统一审美，但主动拉开镜头差异
 - 支持 Reference Photo DNA：学参考图“为什么成立”，不是机械复制内容
 - 支持 Personal Taste：把明确的喜欢 / 不喜欢逐步转成摄影选择权重
-- 个人偏好只改变概率，不覆盖当前 Hard Anchor，也不破坏摄影合理性
+- 支持 Series Director：把 6–9 张图片组织成同一次拍摄中的连续组照，而不是随机拼盘
+- 系列模式默认控制同一人物、同一服装世界、有限场景、统一色彩与镜头节奏
 
 ## 目录
 
@@ -44,13 +44,17 @@ shot-photo/
 │   ├── reference_dna.md
 │   ├── reference_dna_schema.json
 │   ├── personal_taste.md
-│   └── taste_profile.schema.json
+│   ├── taste_profile.schema.json
+│   ├── series_director.md
+│   └── series_recipes.json
 ├── scripts/
 │   ├── generate.py
+│   ├── generate_series.py
 │   └── update_taste.py
 └── examples/
     ├── USAGE.md
     ├── REFERENCE_DNA.md
+    ├── SERIES.md
     └── siran_taste.json
 ```
 
@@ -61,7 +65,7 @@ mkdir -p ~/.codex/skills
 cp -R shot-photo ~/.codex/skills/
 ```
 
-调用：
+普通调用：
 
 ```text
 使用 $shot-photo，一个短发中国女生，广州盛夏，生活感，9:16，生成 6 组。
@@ -88,17 +92,13 @@ Shot Photo 会提取主体占比、摄影距离、可能焦段、机位高度、
 
 ## Personal Taste
 
-v0.3 开始，Shot Photo 可以逐步形成个人 Photographer Profile。
-
-初始档案是中性的：
+初始档案保持中性：
 
 ```bash
 cp examples/siran_taste.json taste_profile.json
 ```
 
-不要预设用户喜欢什么。只有用户明确反馈，或者多张被明确选中的作品出现稳定共同 DNA，才进入个人偏好。
-
-### 记录反馈
+记录反馈：
 
 ```bash
 python scripts/update_taste.py taste_profile.json \
@@ -117,19 +117,9 @@ dislike          -1
 strong-dislike   -2
 ```
 
-每项保存：
+每项保存 `score (-3~+3)`、`evidence` 和 `last_feedback`。单次评价不会永久锁死风格，重复证据才逐渐提高影响。
 
-```json
-{
-  "score": 1.75,
-  "evidence": 3,
-  "last_feedback": "2026-09-08T13:30:00+00:00"
-}
-```
-
-`score` 范围 `-3 ~ +3`。`evidence` 越多，偏好对后续生成影响越稳定。
-
-### 带个人偏好生成
+带个人偏好生成：
 
 ```bash
 python scripts/generate.py "一位短发中国女性" \
@@ -139,62 +129,110 @@ python scripts/generate.py "一位短发中国女性" \
   --seed 42
 ```
 
-Personal Taste 会影响：
-
-- Photographer Profile
-- scene
-- moment
-- expression
-- wardrobe
-- shot size
-- lens
-- camera position
-- composition
-- foreground
-- lighting
-- palette
-- controlled imperfection
-
-但不会把低分项永久禁止，系统仍保留少量探索概率。
-
-### 正确回灌方式
-
-如果用户说：
-
-```text
-第2张喜欢，主要喜欢人物偏在边缘、从门框后观察和窗光。
-第4张不喜欢直闪。
-```
-
-应该只更新：
-
-```text
-composition +
-camera position +
-lighting(window) +
-lighting(direct flash) -
-```
-
-不要自动奖励第2张的服装、表情、焦段、场景，也不要自动惩罚第4张所有变量。
-
-如果用户只说“喜欢这张”，先找 2–4 个最有因果可能的摄影决策，再回灌；不要整图全加分。
+如果用户只说“喜欢这张”，不要把整张图所有变量全部奖励；先找 2–4 个最可能造成喜欢的摄影决策再回灌。
 
 详细规则见 `references/personal_taste.md`。
 
-## 为什么 Personal Taste 不直接锁死风格
+## Series Director
 
-个人审美通常是条件性的。一个人在室内不喜欢 85mm，不代表海边远距离观察也不喜欢 85mm。
+v0.4 新增真正的组照导演层。
 
-因此 Shot Photo 使用：
+用户说：
 
 ```text
-基础摄影人格
-× 摄影兼容性
-× Personal Taste 概率权重
-× Diversity Gate
+做一套 6 张连续组照。
+同一个短发中国女生，广州盛夏，同一套衣服，同一地点同一时间段。
+不要 6 张独立好图，要有开场、靠近、动作、停顿和离场。
 ```
 
-而不是简单的黑名单/白名单。
+系统默认设计：
+
+```text
+01 建立空间
+02 进入人物
+03 动作发生
+04 靠近情绪
+05 重新拉开
+06 离场收束
+```
+
+九张组照则使用：
+
+```text
+01 建立空间
+02 人物进入
+03 第一次动作
+04 情绪近景
+05 细节停顿
+06 空间过渡
+07 第二次动作
+08 情绪回落
+09 离场结尾
+```
+
+Series Director 默认锁定：
+
+- 同一人物身份
+- 同一发型、年龄感、体型比例
+- 同一服装，或最多一次合理换装
+- 同一 Photographer Profile
+- 同一主色彩世界
+- 一个主地点，或 2–3 个可自然衔接的地点
+- 同一时间段，或自然渐进的 Time Arc
+
+### CLI：单地点 6 张
+
+```bash
+python scripts/generate_series.py "一位短发中国女性" \
+  --count 6 \
+  --intent "广州盛夏生活感" \
+  --series-mode single-location \
+  --time-arc static \
+  --seed 42
+```
+
+### CLI：9 张 micro-journey
+
+```bash
+python scripts/generate_series.py "一位中国女性" \
+  --count 9 \
+  --profile 雨夜电影 \
+  --intent "雨后城市短途步行" \
+  --series-mode micro-journey \
+  --time-arc progressive \
+  --seed 42
+```
+
+### 带 Personal Taste 的系列
+
+```bash
+python scripts/generate_series.py "一位短发中国女性" \
+  --count 6 \
+  --intent "广州夏日街头" \
+  --taste-profile taste_profile.json \
+  --series-mode single-location \
+  --seed 42
+```
+
+Series Director 会保留个人偏好，但不会让偏好把所有照片压成同一个焦段、同一种构图。
+
+详细规则见 `references/series_director.md`，调用案例见 `examples/SERIES.md`。
+
+## 为什么 Series Director 和 Batch Diversity 不一样
+
+Batch Diversity 解决的是“不要重复”。
+
+Series Director 解决的是：
+
+```text
+这一组为什么从这张开始？
+为什么此时靠近人物？
+什么时候需要动作？
+什么时候重新拉远？
+最后一张为什么像结束？
+```
+
+因此系列中的差异不是随机差异，而是叙事与观看节奏。
 
 ## 版本演进
 
@@ -208,6 +246,10 @@ lighting(direct flash) -
 
 ### v0.3 Personal Taste
 
-加入个人审美 Schema、反馈更新器、偏好证据计数、低证据阻尼、概率权重生成，以及 Reference DNA → 结果反馈 → Personal Taste 的闭环。
+加入个人审美 Schema、反馈更新器、偏好证据计数、概率权重生成，以及 Reference DNA → 结果反馈 → Personal Taste 的闭环。
 
-下一阶段适合继续做：系列拍摄连续性、同一人物身份一致性，以及从一批历史精选图自动蒸馏 `Siran Photographer Profile`。
+### v0.4 Series Director
+
+加入连续组照规划、6/9 张镜头谱、Identity / Wardrobe / Palette Continuity、single-location / micro-journey、Time Arc 与系列质量门。
+
+下一阶段适合继续做：更强的人物身份一致性、系列参考图 Character Sheet，以及从一批历史精选图自动蒸馏 `Siran Photographer Profile`。
