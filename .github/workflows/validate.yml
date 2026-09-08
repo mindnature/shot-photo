@@ -24,11 +24,13 @@ jobs:
           python -m json.tool references/reference_dna_schema.json > /dev/null
           python -m json.tool references/taste_profile.schema.json > /dev/null
           python -m json.tool references/series_recipes.json > /dev/null
+          python -m json.tool references/random_scene_expansions.json > /dev/null
           python -m json.tool examples/siran_taste.json > /dev/null
 
       - name: Compile scripts
         run: |
           python -m py_compile scripts/generate.py
+          python -m py_compile scripts/generate_random.py
           python -m py_compile scripts/generate_series.py
           python -m py_compile scripts/update_taste.py
 
@@ -93,3 +95,35 @@ jobs:
           assert len(palettes) == 1
           assert len(scenes) == 1
           PY
+
+      - name: Smoke test strong random discovery
+        run: |
+          python scripts/generate_random.py "一个大学生，素颜" \
+            --scene 校园 \
+            --count 8 \
+            --strength strong \
+            --seed 42 \
+            --format json > /tmp/random.json
+          python -m json.tool /tmp/random.json > /dev/null
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/random.json', encoding='utf-8'))
+          assert len(d['results']) == 8
+          c=d['coverage']
+          assert c['profiles'] >= 4, c
+          assert c['scenes'] >= 6, c
+          assert c['shot_sizes'] >= 3, c
+          assert c['camera_positions'] >= 4, c
+          assert c['compositions'] >= 4, c
+          PY
+
+      - name: Smoke test random taste dilution
+        run: |
+          python scripts/generate_random.py "一位短发中国女性" \
+            --scene 广州 \
+            --count 6 \
+            --strength wild \
+            --taste-profile /tmp/taste.json \
+            --seed 7 > /tmp/random-wild.md
+          test -s /tmp/random-wild.md
+          grep -q "Random Discovery: wild" /tmp/random-wild.md
