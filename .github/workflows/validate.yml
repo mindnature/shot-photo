@@ -21,6 +21,7 @@ jobs:
           python -m json.tool references/photographer_profiles.json > /dev/null
           python -m json.tool references/variables.json > /dev/null
           python -m json.tool references/compatibility.json > /dev/null
+          python -m json.tool references/reference_dna_schema.json > /dev/null
 
       - name: Compile generator
         run: python -m py_compile scripts/generate.py
