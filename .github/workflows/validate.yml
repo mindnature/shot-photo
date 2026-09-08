@@ -1,0 +1,35 @@
+name: Validate Shot Photo
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON libraries
+        run: |
+          python -m json.tool references/photographer_profiles.json > /dev/null
+          python -m json.tool references/variables.json > /dev/null
+          python -m json.tool references/compatibility.json > /dev/null
+
+      - name: Compile generator
+        run: python -m py_compile scripts/generate.py
+
+      - name: Smoke test generator
+        run: |
+          python scripts/generate.py "一位短发中国女性" \
+            --count 6 \
+            --profile 东方盛夏 \
+            --scene 盛夏荷塘 \
+            --seed 42 > /tmp/shot-photo-output.md
+          test -s /tmp/shot-photo-output.md
