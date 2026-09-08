@@ -1,0 +1,26 @@
+{
+  "version": "0.3",
+  "name": "Siran Photographer Profile",
+  "sample_count": 0,
+  "updated_at": null,
+  "learning_rate": 1.0,
+  "dimensions": {
+    "profiles": {},
+    "scenes": {},
+    "moments": {},
+    "expressions": {},
+    "wardrobe_styles": {},
+    "shot_sizes": {},
+    "lenses": {},
+    "camera_positions": {},
+    "compositions": {},
+    "foregrounds": {},
+    "lighting": {},
+    "palettes": {},
+    "imperfections": {}
+  },
+  "notes": [
+    "Initial neutral profile. Do not infer preferences without explicit user feedback or repeated approved examples.",
+    "Scores range from -3 to +3. Positive scores increase selection probability; negative scores suppress but do not fully ban exploration."
+  ]
+}
