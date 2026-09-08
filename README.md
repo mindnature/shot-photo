@@ -2,19 +2,30 @@
 
 面向 GPT Image 的个人 AI 摄影导演 Skill。
 
-Shot Photo 不是简单的“摄影 Prompt 随机生成器”。它把摄影创作拆成：意图理解 → 风格人格 → 硬/软锚点 → 摄影变量选择 → 兼容性检查 → 批次差异控制 → GPT Image 提示词合成 → 质量门检查。
+Shot Photo 不把摄影当成 Prompt 词库，而是把创作拆成：
 
-v0.2 开始加入 Reference Photo DNA：参考图不再只是“描述后改写”，而是先提取摄影结构，再迁移到新主体、新场景或新的系列作品。
+```text
+意图理解
+→ Hard / Soft Anchors
+→ Photographer Profile
+→ Reference DNA（如有）
+→ Personal Taste（如有）
+→ 摄影兼容性
+→ 批次镜头设计
+→ GPT Image Prompt
+→ Quality Gate
+```
 
-## 核心目标
+当前版本：`v0.3 Personal Taste`。
 
-- 主要服务 GPT Image，而不是同时兼容所有生图模型
-- 用少量关键锚点控制画面，把细枝末节留给模型发挥
-- 生成“有边界的随机”，避免机械抽签式变量堆砌
-- 同一批作品保持统一摄影审美，但镜头、动作、构图、场景有明显差异
-- 强调真实摄影逻辑、生活瞬间、空间层次、自然光线与克制后期
-- 从参考照片中提取可迁移的摄影 DNA，而不是机械复制画面内容
-- 长期把个人喜欢的摄影语言沉淀为可复用风格资产
+## 核心能力
+
+- 主要服务 GPT Image，使用完整自然语言而不是参数堆砌
+- 先判断摄影逻辑，再选择焦段、机位、构图、前景、光线和瞬间
+- 同批作品保持统一审美，但主动拉开镜头差异
+- 支持 Reference Photo DNA：学参考图“为什么成立”，不是机械复制内容
+- 支持 Personal Taste：把明确的喜欢 / 不喜欢逐步转成摄影选择权重
+- 个人偏好只改变概率，不覆盖当前 Hard Anchor，也不破坏摄影合理性
 
 ## 目录
 
@@ -31,12 +42,16 @@ shot-photo/
 │   ├── gpt_image_prompting.md
 │   ├── quality_gate.md
 │   ├── reference_dna.md
-│   └── reference_dna_schema.json
+│   ├── reference_dna_schema.json
+│   ├── personal_taste.md
+│   └── taste_profile.schema.json
 ├── scripts/
-│   └── generate.py
+│   ├── generate.py
+│   └── update_taste.py
 └── examples/
     ├── USAGE.md
-    └── REFERENCE_DNA.md
+    ├── REFERENCE_DNA.md
+    └── siran_taste.json
 ```
 
 ## 安装
@@ -46,75 +61,153 @@ mkdir -p ~/.codex/skills
 cp -R shot-photo ~/.codex/skills/
 ```
 
-安装后可在新的 Codex 对话中调用：
+调用：
 
 ```text
-使用 $shot-photo，生成 6 组夏日生活感人像摄影方案，9:16。
+使用 $shot-photo，一个短发中国女生，广州盛夏，生活感，9:16，生成 6 组。
 ```
 
-也可以锁定部分条件：
+## Reference DNA
+
+上传参考图后可以说：
 
 ```text
-使用 $shot-photo，主体为短发中国女性，广州雨后街头，35mm，都市疏离感，生成 5 组，其余由摄影导演决定。
+使用 $shot-photo，学这张图的拍法，不复制人物和服装。
+换成广州盛夏街头的一位短发中国女生，9:16，生成 4 组。
 ```
 
-或只给一个模糊意图：
+Shot Photo 会提取主体占比、摄影距离、可能焦段、机位高度、摄影师与主体关系、构图重心、空间层次、光线结构、主色块、动作阶段、真实感来源和情绪机制。
 
-```text
-使用 $shot-photo，把“一个人在盛夏午后短暂发呆”拍成 6 组真实摄影提示词。
-```
-
-## 参考图模式
-
-上传一张参考图后，可以直接说：
-
-```text
-使用 $shot-photo，参考这张图的拍法，不复制人物和服装。换成广州盛夏街头的一位短发中国女生，9:16，给我 4 组。
-```
-
-Shot Photo 会优先提取：
-
-- 主体占比
-- 摄影距离
-- 可能焦段区间
-- 机位高度
-- 摄影师与主体的观察关系
-- 构图重心
-- 前景 / 中景 / 背景层次
-- 光线方向、软硬和光比
-- 主要色块
-- 动作处于哪个瞬间
-- 真实感来自哪里
-- 情绪是如何被摄影关系制造出来的
-
-然后选择三种迁移模式之一：
+三种模式：
 
 1. `structure_transfer`：学拍法，换内容。默认推荐。
-2. `mood_transfer`：只迁移情绪机制、光线、距离和色块，不照搬构图。
-3. `close_rebuild`：用户明确要求时，尽量保留构图、机位、光线和主要画面关系。
+2. `mood_transfer`：只迁移情绪机制、光线、距离和色块。
+3. `close_rebuild`：明确要求复刻时，尽量保留构图、机位、光线和主要关系。
 
 详细规则见 `references/reference_dna.md`。
 
-## v0.1 设计原则
+## Personal Taste
 
-1. **Anchor Budget**：硬锚点原则上不超过 4 个，软锚点不超过 5 个，至少保留 3 个自由变量。
-2. **Conditional Selection**：变量不是独立随机；焦段、景别、机位、光线、前景和场景之间必须兼容。
-3. **Style First**：先确定摄影风格人格，再从相应变量分布中选择，而不是所有元素放进同一个大池。
-4. **Moment First**：优先拍动作正在发生的瞬间，而不是动作完成后的标准摆拍。
-5. **Controlled Imperfection**：允许自然遮挡、轻微失焦、运动模糊、过曝、反射和颗粒，但不能为了“瑕疵感”破坏主体。
-6. **GPT Image Native**：使用完整自然语言和明确视觉关系，不堆砌模型参数，不把 Prompt 写成标签垃圾桶。
+v0.3 开始，Shot Photo 可以逐步形成个人 Photographer Profile。
 
-## v0.2 Reference DNA
+初始档案是中性的：
 
-v0.2 新增四个原则：
+```bash
+cp examples/siran_taste.json taste_profile.json
+```
 
-1. **Structure Before Content**：先判断参考图为什么成立，再看人物穿了什么、站在哪里。
-2. **No Fake EXIF**：没有真实 EXIF 时，只估计焦段区间与摄影距离，不伪造光圈、快门、ISO。
-3. **Transfer, Not Collage**：迁移摄影关系，而不是把参考图的服装、动作、场景、光线全部堆到新图里。
-4. **Reference Anchor Budget**：参考图只锁定最重要的 3–5 个结构锚点，保留新画面的自由度。
+不要预设用户喜欢什么。只有用户明确反馈，或者多张被明确选中的作品出现稳定共同 DNA，才进入个人偏好。
 
-## 当前版本
+### 记录反馈
 
-v0.2：在 v0.1 的摄影导演核心框架之上，加入 Reference Photo DNA、三种参考图迁移模式、多参考图共同 DNA 提取与参考图质量门。
+```bash
+python scripts/update_taste.py taste_profile.json \
+  --like lenses=35mm \
+  --strong-like compositions=人物放在极侧边 \
+  --like camera_positions=从门框后方拍 \
+  --dislike imperfections=轻微数码噪点
+```
 
-下一阶段计划：个人审美反馈权重、系列拍摄连续性、人物身份一致性，以及“喜欢 / 不喜欢”结果回灌形成个人 Photographer Profile。
+支持四级反馈：
+
+```text
+strong-like      +2
+like             +1
+dislike          -1
+strong-dislike   -2
+```
+
+每项保存：
+
+```json
+{
+  "score": 1.75,
+  "evidence": 3,
+  "last_feedback": "2026-09-08T13:30:00+00:00"
+}
+```
+
+`score` 范围 `-3 ~ +3`。`evidence` 越多，偏好对后续生成影响越稳定。
+
+### 带个人偏好生成
+
+```bash
+python scripts/generate.py "一位短发中国女性" \
+  --intent "广州盛夏生活感" \
+  --taste-profile taste_profile.json \
+  --count 6 \
+  --seed 42
+```
+
+Personal Taste 会影响：
+
+- Photographer Profile
+- scene
+- moment
+- expression
+- wardrobe
+- shot size
+- lens
+- camera position
+- composition
+- foreground
+- lighting
+- palette
+- controlled imperfection
+
+但不会把低分项永久禁止，系统仍保留少量探索概率。
+
+### 正确回灌方式
+
+如果用户说：
+
+```text
+第2张喜欢，主要喜欢人物偏在边缘、从门框后观察和窗光。
+第4张不喜欢直闪。
+```
+
+应该只更新：
+
+```text
+composition +
+camera position +
+lighting(window) +
+lighting(direct flash) -
+```
+
+不要自动奖励第2张的服装、表情、焦段、场景，也不要自动惩罚第4张所有变量。
+
+如果用户只说“喜欢这张”，先找 2–4 个最有因果可能的摄影决策，再回灌；不要整图全加分。
+
+详细规则见 `references/personal_taste.md`。
+
+## 为什么 Personal Taste 不直接锁死风格
+
+个人审美通常是条件性的。一个人在室内不喜欢 85mm，不代表海边远距离观察也不喜欢 85mm。
+
+因此 Shot Photo 使用：
+
+```text
+基础摄影人格
+× 摄影兼容性
+× Personal Taste 概率权重
+× Diversity Gate
+```
+
+而不是简单的黑名单/白名单。
+
+## 版本演进
+
+### v0.1 Photography Director
+
+建立 Anchor Budget、Conditional Photography、Moment First、Batch Diversity、GPT Image Native Prompt 和 Quality Gate。
+
+### v0.2 Reference DNA
+
+加入参考图摄影 DNA、三种迁移模式、多图共同 DNA、No Fake EXIF 与 Reference Anchor Budget。
+
+### v0.3 Personal Taste
+
+加入个人审美 Schema、反馈更新器、偏好证据计数、低证据阻尼、概率权重生成，以及 Reference DNA → 结果反馈 → Personal Taste 的闭环。
+
+下一阶段适合继续做：系列拍摄连续性、同一人物身份一致性，以及从一批历史精选图自动蒸馏 `Siran Photographer Profile`。
