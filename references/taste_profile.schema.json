@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mindnature/shot-photo/references/taste_profile.schema.json",
+  "title": "Shot Photo Personal Taste Profile",
+  "type": "object",
+  "required": ["version", "name", "sample_count", "dimensions"],
+  "properties": {
+    "version": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
+    "sample_count": {"type": "integer", "minimum": 0},
+    "updated_at": {"type": ["string", "null"]},
+    "learning_rate": {"type": "number", "minimum": 0.1, "maximum": 2.0},
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "required": ["score", "evidence"],
+          "properties": {
+            "score": {"type": "number", "minimum": -3, "maximum": 3},
+            "evidence": {"type": "integer", "minimum": 0},
+            "last_feedback": {"type": ["string", "null"]}
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}
