@@ -1,0 +1,92 @@
+{
+  "version": "0.4",
+  "principles": {
+    "default_series_size": 6,
+    "recommended_sizes": [6, 9],
+    "identity_lock": true,
+    "wardrobe_continuity": true,
+    "palette_continuity": true,
+    "max_scene_clusters": 3
+  },
+  "recipes": {
+    "6": [
+      {
+        "id": "R1",
+        "name": "建立空间",
+        "purpose": "先让观众知道人物在哪里，不急着展示脸",
+        "preferred_shot_sizes": ["人物小比例大环境", "全身环境人像"],
+        "preferred_lenses": ["28mm", "35mm"],
+        "composition_keywords": ["留白", "环境", "天空", "水面", "几何", "引导线"]
+      },
+      {
+        "id": "R2",
+        "name": "进入人物",
+        "purpose": "从环境向人物靠近，建立人物与空间关系",
+        "preferred_shot_sizes": ["全身环境人像", "半身环境人像", "膝上中景"],
+        "preferred_lenses": ["35mm", "50mm"],
+        "composition_keywords": ["偏侧", "框景", "不对称"]
+      },
+      {
+        "id": "R3",
+        "name": "动作发生",
+        "purpose": "用进行中的动作制造组照的事件感",
+        "preferred_shot_sizes": ["膝上中景", "半身环境人像", "全身环境人像"],
+        "preferred_lenses": ["28mm", "35mm", "50mm"],
+        "composition_keywords": ["对角线", "近大远小", "即将走出画面"]
+      },
+      {
+        "id": "R4",
+        "name": "靠近情绪",
+        "purpose": "第一次明显靠近人物，给表情与停顿留空间",
+        "preferred_shot_sizes": ["腰部中近景", "胸像近景", "肩部特写"],
+        "preferred_lenses": ["50mm", "85mm"],
+        "composition_keywords": ["偏侧", "前景", "窗框", "门框"]
+      },
+      {
+        "id": "R5",
+        "name": "重新拉开",
+        "purpose": "避免连续近景疲劳，重新交代空间和身体状态",
+        "preferred_shot_sizes": ["人物小比例大环境", "全身环境人像"],
+        "preferred_lenses": ["35mm", "50mm", "85mm"],
+        "composition_keywords": ["留白", "环境", "人物只占", "地面", "天空"]
+      },
+      {
+        "id": "R6",
+        "name": "离场收束",
+        "purpose": "用背影、离开、停顿或未完成动作形成开放式结尾",
+        "preferred_shot_sizes": ["全身环境人像", "人物小比例大环境", "半身环境人像"],
+        "preferred_lenses": ["35mm", "50mm", "85mm"],
+        "composition_keywords": ["即将走出画面", "偏侧", "留白", "背后"]
+      }
+    ],
+    "9": [
+      {
+        "id": "R1", "name": "建立空间", "purpose": "环境开场", "preferred_shot_sizes": ["人物小比例大环境", "全身环境人像"], "preferred_lenses": ["28mm", "35mm"], "composition_keywords": ["留白", "环境", "引导线"]
+      },
+      {
+        "id": "R2", "name": "人物进入", "purpose": "人物进入环境", "preferred_shot_sizes": ["全身环境人像", "半身环境人像"], "preferred_lenses": ["35mm", "50mm"], "composition_keywords": ["偏侧", "不对称"]
+      },
+      {
+        "id": "R3", "name": "第一次动作", "purpose": "事件开始", "preferred_shot_sizes": ["膝上中景", "全身环境人像"], "preferred_lenses": ["28mm", "35mm", "50mm"], "composition_keywords": ["对角线", "近大远小"]
+      },
+      {
+        "id": "R4", "name": "情绪近景", "purpose": "第一次靠近人物", "preferred_shot_sizes": ["腰部中近景", "胸像近景"], "preferred_lenses": ["50mm", "85mm"], "composition_keywords": ["偏侧", "前景", "框景"]
+      },
+      {
+        "id": "R5", "name": "细节停顿", "purpose": "用局部或微动作换节奏", "preferred_shot_sizes": ["肩部特写", "胸像近景", "脸部局部超近景"], "preferred_lenses": ["50mm", "85mm"], "composition_keywords": ["局部", "遮挡", "前景"]
+      },
+      {
+        "id": "R6", "name": "空间过渡", "purpose": "重新拉开，完成场景或时间过渡", "preferred_shot_sizes": ["全身环境人像", "人物小比例大环境"], "preferred_lenses": ["35mm", "50mm"], "composition_keywords": ["环境", "留白", "引导线"]
+      },
+      {
+        "id": "R7", "name": "第二次动作", "purpose": "形成组照后半段的事件峰值", "preferred_shot_sizes": ["膝上中景", "半身环境人像", "全身环境人像"], "preferred_lenses": ["28mm", "35mm", "50mm"], "composition_keywords": ["对角线", "即将走出画面"]
+      },
+      {
+        "id": "R8", "name": "情绪回落", "purpose": "安静停顿，给结尾留空间", "preferred_shot_sizes": ["腰部中近景", "半身环境人像"], "preferred_lenses": ["50mm", "85mm"], "composition_keywords": ["偏侧", "留白", "框景"]
+      },
+      {
+        "id": "R9", "name": "离场结尾", "purpose": "开放式收束", "preferred_shot_sizes": ["人物小比例大环境", "全身环境人像"], "preferred_lenses": ["35mm", "50mm", "85mm"], "composition_keywords": ["即将走出画面", "留白", "人物只占"]
+      }
+    ]
+  }
+}
