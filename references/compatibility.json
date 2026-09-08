@@ -1,0 +1,119 @@
+{
+  "version": "0.1",
+  "principle": "Prefer physically plausible, visually coherent combinations over maximum randomness.",
+  "lens_rules": {
+    "24mm": {
+      "preferred_shots": ["全身环境人像", "人物小比例大环境", "膝上中景"],
+      "preferred_positions": ["贴地低机位", "人物腰部以下的低机位", "自然平视抓拍"],
+      "avoid_shots": ["脸部局部超近景"],
+      "notes": "近距离允许明显透视，避免同时要求无广角感。"
+    },
+    "28mm": {
+      "preferred_shots": ["全身环境人像", "半身环境人像", "人物小比例大环境", "膝上中景"],
+      "preferred_positions": ["贴近水面的极低机位", "自然平视抓拍", "摄影师边走边拍", "从人物背后跟拍"],
+      "avoid_shots": ["脸部局部超近景"],
+      "notes": "适合建立强空间关系和前景层次。"
+    },
+    "35mm": {
+      "preferred_shots": ["腰部中近景", "膝上中景", "半身环境人像", "全身环境人像", "人物小比例大环境"],
+      "preferred_positions": ["自然平视抓拍", "从门框后方拍", "隔着植物侧拍", "摄影师边走边拍"],
+      "avoid_shots": [],
+      "notes": "默认最通用的环境人像和生活抓拍焦段。"
+    },
+    "50mm": {
+      "preferred_shots": ["胸像近景", "腰部中近景", "膝上中景", "半身环境人像"],
+      "preferred_positions": ["自然平视抓拍", "轻微俯拍", "从窗外向室内拍", "从门框后方拍"],
+      "avoid_shots": [],
+      "notes": "自然透视，适合室内和中等距离观察。"
+    },
+    "85mm": {
+      "preferred_shots": ["胸像近景", "腰部中近景", "膝上中景", "全身环境人像"],
+      "preferred_positions": ["街对面远距离观察", "隔着植物侧拍", "从车厢前排远距离拍"],
+      "avoid_shots": ["极近距离低机位脸部特写"],
+      "notes": "强调距离和压缩，不要同时写摄影师贴脸拍摄。"
+    },
+    "105mm": {
+      "preferred_shots": ["膝上中景", "全身环境人像", "人物小比例大环境"],
+      "preferred_positions": ["街对面远距离观察", "从车厢前排远距离拍", "人群之间寻找空隙拍摄"],
+      "avoid_shots": ["脸部局部超近景", "贴近水面的极低机位"],
+      "notes": "用于远距离观察和空间压缩，不适合狭窄室内。"
+    }
+  },
+  "scene_rules": {
+    "tight_space": {
+      "prefer_lenses": ["24mm", "28mm", "35mm", "50mm"],
+      "avoid_lenses": ["105mm"],
+      "prefer_foregrounds": ["门框", "窗框", "椅背或桌角", "公交座椅边缘"],
+      "notes": "空间狭窄时优先让摄影师位置可解释。"
+    },
+    "water": {
+      "prefer_positions": ["贴近水面的极低机位", "自然平视抓拍", "隔着植物侧拍"],
+      "prefer_foregrounds": ["完全失焦的荷花或叶片", "巨大荷叶边缘", "水面反光"],
+      "prefer_lighting": ["水面反射补光", "午后侧逆光", "盛夏正午硬光"],
+      "notes": "前景和补光必须来源于真实水体环境。"
+    },
+    "rain": {
+      "prefer_foregrounds": ["雨伞边缘", "车窗水滴", "湿润树枝", "玻璃反射"],
+      "prefer_lighting": ["雨后清透散射光", "便利店冷白灯", "夏夜路灯"],
+      "avoid_lighting": ["盛夏正午硬光"],
+      "notes": "雨后环境优先湿地反射和散射光，不要硬塞正午阳光。"
+    },
+    "window": {
+      "prefer_positions": ["从窗外向室内拍", "从门框后方拍", "从玻璃门另一侧拍"],
+      "prefer_foregrounds": ["白色窗帘", "窗框", "玻璃反射"],
+      "prefer_lighting": ["窗边高反差自然光", "室内暗部与窗外高亮的大反差自然光", "车窗切割光"]
+    },
+    "architecture": {
+      "prefer_lenses": ["24mm", "28mm", "35mm", "50mm"],
+      "prefer_compositions": ["建筑几何切割画面", "透视引导线构图", "人物小比例环境肖像", "极端留白"],
+      "prefer_positions": ["贴地低机位", "明显高位俯拍", "从栏杆缝隙拍"]
+    },
+    "crowd": {
+      "prefer_foregrounds": ["路过行人的虚影"],
+      "prefer_positions": ["人群之间寻找空隙拍摄", "街对面远距离观察"],
+      "prefer_imperfections": ["轻微运动模糊", "边缘路人或物体偶然进入画面"]
+    },
+    "vehicle": {
+      "prefer_foregrounds": ["汽车玻璃", "公交座椅边缘", "车窗水滴"],
+      "prefer_positions": ["从车厢前排远距离拍", "从半开的车门后拍", "从人物背后跟拍"],
+      "prefer_lighting": ["车窗切割光"]
+    }
+  },
+  "shot_rules": {
+    "脸部局部超近景": {
+      "prefer_lenses": ["50mm", "85mm"],
+      "avoid_compositions": ["人物小比例环境肖像", "大面积天空", "大面积水面"]
+    },
+    "人物小比例大环境": {
+      "prefer_lenses": ["24mm", "28mm", "35mm", "85mm", "105mm"],
+      "avoid_compositions": ["只展示人物局部但保留身份线索"]
+    }
+  },
+  "foreground_rules": {
+    "max_strength": "Foreground may cover an edge of the face, shoulder, arm, leg or body, but should not obscure the subject without narrative reason.",
+    "source_required": true,
+    "max_major_foregrounds": 1
+  },
+  "lighting_rules": {
+    "max_primary_sources": 2,
+    "natural_first": true,
+    "notes": "主光必须能从场景中解释；电影感不等于添加多个彩色光源。"
+  },
+  "imperfection_rules": {
+    "min": 0,
+    "max": 3,
+    "default": 1,
+    "forbidden_pairs": [
+      ["严重运动模糊", "脸部必须完全锐利"],
+      ["强烈数码噪点", "干净无噪点商业摄影"]
+    ],
+    "notes": "摄影缺陷用于增加可信度，不得盖过主体和叙事。"
+  },
+  "conflict_resolution": [
+    "user_hard_anchor",
+    "subject_identity",
+    "physical_scene_plausibility",
+    "photographer_profile",
+    "novelty"
+  ]
+}
