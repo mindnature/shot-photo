@@ -23,11 +23,13 @@ jobs:
           python -m json.tool references/compatibility.json > /dev/null
           python -m json.tool references/reference_dna_schema.json > /dev/null
           python -m json.tool references/taste_profile.schema.json > /dev/null
+          python -m json.tool references/series_recipes.json > /dev/null
           python -m json.tool examples/siran_taste.json > /dev/null
 
       - name: Compile scripts
         run: |
           python -m py_compile scripts/generate.py
+          python -m py_compile scripts/generate_series.py
           python -m py_compile scripts/update_taste.py
 
       - name: Smoke test base generator
@@ -64,3 +66,30 @@ jobs:
             --seed 42 > /tmp/shot-photo-taste-output.md
           test -s /tmp/shot-photo-taste-output.md
           grep -q "Taste:" /tmp/shot-photo-taste-output.md
+
+      - name: Smoke test series director
+        run: |
+          python scripts/generate_series.py "一位短发中国女性" \
+            --count 6 \
+            --intent "广州盛夏生活感" \
+            --taste-profile /tmp/taste.json \
+            --series-mode single-location \
+            --time-arc static \
+            --seed 42 \
+            --format json > /tmp/series.json
+          python -m json.tool /tmp/series.json > /dev/null
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/series.json', encoding='utf-8'))
+          assert d['series']['count'] == 6
+          shots=d['shots']
+          assert len(shots) == 6
+          assert shots[0]['role'] == '建立空间'
+          assert shots[-1]['role'] == '离场收束'
+          wardrobes={s['plan']['wardrobe'] for s in shots}
+          palettes={s['plan']['palette'] for s in shots}
+          scenes={s['plan']['scene'] for s in shots}
+          assert len(wardrobes) == 1
+          assert len(palettes) == 1
+          assert len(scenes) == 1
+          PY
