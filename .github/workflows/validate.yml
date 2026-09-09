@@ -24,6 +24,7 @@ jobs:
           python -m json.tool references/reference_dna_schema.json > /dev/null
           python -m json.tool references/taste_profile.schema.json > /dev/null
           python -m json.tool references/series_recipes.json > /dev/null
+          python -m json.tool references/series_entropy_rules.json > /dev/null
           python -m json.tool references/random_scene_expansions.json > /dev/null
           python -m json.tool examples/siran_taste.json > /dev/null
 
@@ -69,31 +70,86 @@ jobs:
           test -s /tmp/shot-photo-taste-output.md
           grep -q "Taste:" /tmp/shot-photo-taste-output.md
 
-      - name: Smoke test series director
+      - name: Smoke test six-frame series entropy
         run: |
           python scripts/generate_series.py "一位短发中国女性" \
             --count 6 \
+            --scene 旧城区市场 \
             --intent "广州盛夏生活感" \
             --taste-profile /tmp/taste.json \
             --series-mode single-location \
             --time-arc static \
+            --entropy-strength strong \
             --seed 42 \
-            --format json > /tmp/series.json
-          python -m json.tool /tmp/series.json > /dev/null
+            --format json > /tmp/series6.json
+          python -m json.tool /tmp/series6.json > /dev/null
           python - <<'PY'
           import json
-          d=json.load(open('/tmp/series.json', encoding='utf-8'))
+          d=json.load(open('/tmp/series6.json', encoding='utf-8'))
+          assert d['series']['version'] == '0.8'
           assert d['series']['count'] == 6
           shots=d['shots']
           assert len(shots) == 6
           assert shots[0]['role'] == '建立空间'
           assert shots[-1]['role'] == '离场收束'
-          wardrobes={s['plan']['wardrobe'] for s in shots}
-          palettes={s['plan']['palette'] for s in shots}
-          scenes={s['plan']['scene'] for s in shots}
-          assert len(wardrobes) == 1
-          assert len(palettes) == 1
-          assert len(scenes) == 1
+          assert len({s['plan']['wardrobe'] for s in shots}) == 1
+          assert len({s['plan']['palette'] for s in shots}) == 1
+          assert len({s['plan']['scene'] for s in shots}) == 1
+          c=d['series']['coverage']
+          q=d['series']['quota']
+          assert c['shot_sizes'] >= q['min_unique_shot_sizes'], (c,q)
+          assert c['camera_positions'] >= q['min_unique_camera_positions'], (c,q)
+          assert c['action_states'] >= q['min_unique_action_states'], (c,q)
+          assert c['compositions'] >= q['min_unique_compositions'], (c,q)
+          assert c['observation_relationships'] >= q['min_unique_observation_relationships'], (c,q)
+          assert c['small_subject_environment_images'] >= 1, c
+          assert c['back_or_partial_back_images'] >= 1, c
+          assert c['imperfect_images'] >= 1, c
+          assert d['series']['text_suppression'] is True
+          assert all('背景招牌只作为环境纹理' in s['prompt'] for s in shots)
+          PY
+
+      - name: Smoke test nine-frame controlled chaos
+        run: |
+          python scripts/generate_series.py "一个女生" \
+            --count 9 \
+            --scene 旧城区市场 \
+            --intent "旅行写真，真实，不要宣传片感" \
+            --series-mode single-location \
+            --entropy-strength strong \
+            --seed 7 \
+            --format json > /tmp/series9.json
+          python -m json.tool /tmp/series9.json > /dev/null
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/series9.json', encoding='utf-8'))
+          c=d['series']['coverage']
+          q=d['series']['quota']
+          assert c['shot_sizes'] >= q['min_unique_shot_sizes'], (c,q)
+          assert c['camera_positions'] >= q['min_unique_camera_positions'], (c,q)
+          assert c['action_states'] >= q['min_unique_action_states'], (c,q)
+          assert c['compositions'] >= q['min_unique_compositions'], (c,q)
+          assert c['observation_relationships'] >= q['min_unique_observation_relationships'], (c,q)
+          assert c['occlusion_or_reflection_images'] >= 2, c
+          assert c['small_subject_environment_images'] >= 1, c
+          assert c['back_or_partial_back_images'] >= 1, c
+          assert c['imperfect_images'] >= 1, c
+          assert len({s['entropy_role'] for s in d['shots']}) >= 8
+          PY
+
+      - name: Smoke test readable-text override
+        run: |
+          python scripts/generate_series.py "一个女生" \
+            --count 6 \
+            --scene 旧城区市场 \
+            --allow-readable-text \
+            --seed 5 \
+            --format json > /tmp/series-text.json
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/series-text.json', encoding='utf-8'))
+          assert d['series']['text_suppression'] is False
+          assert all('背景招牌只作为环境纹理' not in s['prompt'] for s in d['shots'])
           PY
 
       - name: Smoke test strong random discovery
