@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Shot Photo v0.8 — Series Entropy / Controlled Chaos planner.
 
-Builds a 4–12 frame GPT Image photo series that strongly preserves identity,
-wardrobe, place world and time continuity while deliberately varying camera
-position, action state, observation relationship, subject scale, composition,
-foreground interference and controlled imperfection.
+Keeps identity, wardrobe, place world and time coherent while deliberately
+varying camera position, action state, observation relationship, subject scale,
+composition, foreground interference and controlled imperfection.
 
 This script plans prompts only; it does not call an image API.
 """
@@ -32,13 +31,8 @@ ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "references"
 
 
-def load_series_recipes() -> Dict[str, Any]:
-    with (REF / "series_recipes.json").open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def load_entropy_rules() -> Dict[str, Any]:
-    with (REF / "series_entropy_rules.json").open("r", encoding="utf-8") as f:
+def load_ref(name: str) -> Dict[str, Any]:
+    with (REF / name).open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -47,8 +41,6 @@ def scale_recipe(count: int, recipes: Dict[str, Any]) -> List[Dict[str, Any]]:
     if key in recipes["recipes"]:
         return recipes["recipes"][key]
     base = recipes["recipes"]["9"]
-    if count == 1:
-        return [base[0]]
     indices = [round(i * (len(base) - 1) / (count - 1)) for i in range(count)]
     return [base[i] for i in indices]
 
@@ -66,6 +58,25 @@ def choose_named(
         rng,
         taste=taste,
         taste_dimension=dimension,
+    )
+
+
+def choose_anchor_scene(
+    variables: Dict[str, Any],
+    profile: Dict[str, Any],
+    fixed_scene: str | None,
+    rng: random.Random,
+    taste: Dict[str, Any] | None,
+) -> Dict[str, Any]:
+    scenes = scene_candidates(variables, profile, fixed_scene)
+    preferred_names = profile_scene_names(scenes, profile)
+    return weighted_preference(
+        scenes,
+        preferred_names,
+        rng,
+        value_getter=lambda x: x["name"],
+        taste=taste,
+        taste_dimension="scenes",
     )
 
 
@@ -88,25 +99,6 @@ def related_scene_pool(
     return [scene for _, scene in ranked]
 
 
-def choose_anchor_scene(
-    variables: Dict[str, Any],
-    profile: Dict[str, Any],
-    fixed_scene: str | None,
-    rng: random.Random,
-    taste: Dict[str, Any] | None,
-) -> Dict[str, Any]:
-    scenes = scene_candidates(variables, profile, fixed_scene)
-    preferred_names = profile_scene_names(scenes, profile)
-    return weighted_preference(
-        scenes,
-        preferred_names,
-        rng,
-        value_getter=lambda x: x["name"],
-        taste=taste,
-        taste_dimension="scenes",
-    )
-
-
 def build_scene_sequence(
     variables: Dict[str, Any],
     profile: Dict[str, Any],
@@ -119,21 +111,12 @@ def build_scene_sequence(
     anchor = choose_anchor_scene(variables, profile, fixed_scene, rng, taste)
     if fixed_scene or mode == "single-location":
         return [anchor] * count
-
     related = related_scene_pool(variables, anchor, profile)
-    cluster = [anchor]
-    for scene in related:
-        if len(cluster) >= 3:
-            break
-        cluster.append(scene)
-
-    if len(cluster) == 1:
-        return [anchor] * count
-
-    sequence: List[Dict[str, Any]] = []
+    cluster = [anchor, *related[:2]]
+    sequence = []
     for i in range(count):
-        index = min(len(cluster) - 1, int(i * len(cluster) / count))
-        sequence.append(cluster[index])
+        idx = min(len(cluster) - 1, int(i * len(cluster) / count))
+        sequence.append(cluster[idx])
     return sequence
 
 
@@ -148,8 +131,8 @@ def role_lens(
     taste: Dict[str, Any] | None,
 ) -> str:
     candidates = valid_lenses(variables["lenses"], scene, compatibility)
-    role_lenses = set(role.get("preferred_lenses", []))
-    filtered = [x for x in candidates if x["name"] in role_lenses] or candidates
+    preferred = set(role.get("preferred_lenses", []))
+    filtered = [x for x in candidates if x["name"] in preferred] or candidates
     compatible = []
     for lens in filtered:
         rule = compatibility.get("lens_rules", {}).get(lens["name"], {})
@@ -166,7 +149,7 @@ def role_lens(
     )["name"]
 
 
-ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
+BLUEPRINTS: List[Dict[str, str]] = [
     {
         "entropy_role": "environment_small_subject",
         "observation_relationship": "稍远处安静观察",
@@ -175,7 +158,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "camera_position": "街对面远距离观察",
         "composition": "人物只占画面很小一角",
         "moment": "沿栈道缓慢行走",
-        "text_visibility_level": "partial",
+        "text_visibility_level": "partial"
     },
     {
         "entropy_role": "walking_companion",
@@ -185,7 +168,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "camera_position": "摄影师边走边拍",
         "composition": "不对称构图",
         "moment": "经过镜头时被偶然捕捉",
-        "text_visibility_level": "blurred",
+        "text_visibility_level": "blurred"
     },
     {
         "entropy_role": "object_interaction",
@@ -195,7 +178,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "camera_position": "自然平视抓拍",
         "composition": "多层街道空间",
         "moment": "看路牌时短暂停住",
-        "text_visibility_level": "partial",
+        "text_visibility_level": "partial"
     },
     {
         "entropy_role": "close_emotion",
@@ -204,8 +187,8 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "shot_size": "胸像近景",
         "camera_position": "人群之间寻找空隙拍摄",
         "composition": "人物放在极侧边",
-        "moment": "听见声音后分神",
-        "text_visibility_level": "blurred",
+        "moment": "走到一半突然停住",
+        "text_visibility_level": "blurred"
     },
     {
         "entropy_role": "quiet_pause",
@@ -217,7 +200,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "moment": "坐在边缘短暂发呆",
         "foreground": "椅背或桌角",
         "imperfection": "边缘路人或物体偶然进入画面",
-        "text_visibility_level": "occluded",
+        "text_visibility_level": "occluded"
     },
     {
         "entropy_role": "reflection_layer",
@@ -229,7 +212,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "moment": "刚走出商店门口",
         "foreground": "玻璃反射",
         "imperfection": "玻璃反射叠影",
-        "text_visibility_level": "occluded",
+        "text_visibility_level": "occluded"
     },
     {
         "entropy_role": "low_angle_motion",
@@ -240,7 +223,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "composition": "对角线构图",
         "moment": "从阴影走进阳光",
         "imperfection": "轻微运动模糊",
-        "text_visibility_level": "blurred",
+        "text_visibility_level": "blurred"
     },
     {
         "entropy_role": "foreground_interruption",
@@ -252,7 +235,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "moment": "伸手推开半扇门",
         "foreground": "门框",
         "imperfection": "边缘路人或物体偶然进入画面",
-        "text_visibility_level": "occluded",
+        "text_visibility_level": "occluded"
     },
     {
         "entropy_role": "back_view_exit",
@@ -263,7 +246,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "composition": "人物即将走出画面",
         "moment": "准备离开画面",
         "imperfection": "轻微倾斜的手持瞬间",
-        "text_visibility_level": "none",
+        "text_visibility_level": "none"
     },
     {
         "entropy_role": "passing_subject",
@@ -272,9 +255,9 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "shot_size": "膝上中景",
         "camera_position": "自然平视抓拍",
         "composition": "强烈近大远小",
-        "moment": "走到一半突然停住",
+        "moment": "刚跨过一滩水",
         "imperfection": "小范围自然过曝",
-        "text_visibility_level": "blurred",
+        "text_visibility_level": "blurred"
     },
     {
         "entropy_role": "high_observation",
@@ -284,7 +267,7 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "camera_position": "明显高位俯拍",
         "composition": "地面占画面大半",
         "moment": "低头调整鞋带",
-        "text_visibility_level": "none",
+        "text_visibility_level": "none"
     },
     {
         "entropy_role": "partial_close",
@@ -295,56 +278,51 @@ ENTROPY_BLUEPRINTS: List[Dict[str, str]] = [
         "composition": "只展示人物局部但保留身份线索",
         "moment": "刚喝完一口冰水",
         "imperfection": "边缘高光轻微溢出",
-        "text_visibility_level": "none",
-    },
+        "text_visibility_level": "none"
+    }
 ]
 
 
 def entropy_sequence(count: int, strength: str, rng: random.Random) -> List[Dict[str, str]]:
-    """Return diverse deterministic blueprints; wild perturbs their order more strongly."""
-    pool = [dict(x) for x in ENTROPY_BLUEPRINTS]
+    """Choose a coverage-safe set, then optionally randomize its order."""
+    if count == 6:
+        indices = [0, 1, 4, 5, 6, 8]
+    elif count == 9:
+        indices = list(range(9))
+    elif count < 6:
+        indices = list(range(count))
+        if count >= 5:
+            indices[-1] = 8
+    else:
+        indices = list(range(min(count, len(BLUEPRINTS))))
+        if 8 not in indices:
+            indices[-1] = 8
+        while len(indices) < count:
+            indices.append(len(indices) % len(BLUEPRINTS))
+
+    result = [dict(BLUEPRINTS[i]) for i in indices]
     if strength == "wild":
-        rng.shuffle(pool)
-    elif strength == "strong" and len(pool) > 3:
-        middle = pool[1:-1]
+        rng.shuffle(result)
+    elif strength == "strong" and len(result) > 4:
+        # Keep coverage guaranteed; only rotate middle frames for surprise.
+        middle = result[1:-1]
         rng.shuffle(middle)
-        pool = [pool[0], *middle, pool[-1]]
-
-    if count <= len(pool):
-        # Spread selections across the pool so 4–6 frame series do not sample only one cluster.
-        if count == 1:
-            return [pool[0]]
-        idx = [round(i * (len(pool) - 1) / (count - 1)) for i in range(count)]
-        return [dict(pool[i]) for i in idx]
-
-    result: List[Dict[str, str]] = []
-    for i in range(count):
-        result.append(dict(pool[i % len(pool)]))
+        result = [result[0], *middle, result[-1]]
     return result
 
 
-def apply_entropy_blueprint(
-    shot: Dict[str, str],
-    blueprint: Dict[str, str],
-    variables: Dict[str, Any],
-) -> None:
-    valid_camera = set(variables["camera_positions"])
-    valid_comp = set(variables["compositions"])
-    valid_moments = set(variables["moments"])
-    valid_shots = set(variables["shot_sizes"])
-    valid_foregrounds = {x["name"] for x in variables["foregrounds"]}
-    valid_imperfections = set(variables["imperfections"])
-
-    for key, valid in (
-        ("camera_position", valid_camera),
-        ("composition", valid_comp),
-        ("moment", valid_moments),
-        ("shot_size", valid_shots),
-        ("foreground", valid_foregrounds),
-        ("imperfection", valid_imperfections),
-    ):
+def apply_blueprint(shot: Dict[str, str], blueprint: Dict[str, str], variables: Dict[str, Any]) -> None:
+    valid = {
+        "camera_position": set(variables["camera_positions"]),
+        "composition": set(variables["compositions"]),
+        "moment": set(variables["moments"]),
+        "shot_size": set(variables["shot_sizes"]),
+        "foreground": {x["name"] for x in variables["foregrounds"]},
+        "imperfection": set(variables["imperfections"]),
+    }
+    for key, values in valid.items():
         value = blueprint.get(key)
-        if value and value in valid:
+        if value and value in values:
             shot[key] = value
 
     shot["observation_relationship"] = blueprint["observation_relationship"]
@@ -360,7 +338,7 @@ def quota_for_count(count: int, rules: Dict[str, Any]) -> Dict[str, int]:
 
 
 def series_coverage(shots: List[Dict[str, str]]) -> Dict[str, int]:
-    occlusion_names = {"玻璃反射", "椅背或桌角", "门框", "窗框", "路过行人的虚影", "栏杆"}
+    occlusion = {"玻璃反射", "椅背或桌角", "门框", "窗框", "路过行人的虚影", "栏杆"}
     return {
         "shot_sizes": len({s.get("shot_size") for s in shots}),
         "camera_positions": len({s.get("camera_position") for s in shots}),
@@ -369,7 +347,7 @@ def series_coverage(shots: List[Dict[str, str]]) -> Dict[str, int]:
         "observation_relationships": len({s.get("observation_relationship") for s in shots}),
         "occlusion_or_reflection_images": sum(
             1 for s in shots
-            if s.get("foreground") in occlusion_names
+            if s.get("foreground") in occlusion
             or "反射" in s.get("composition", "")
             or "遮挡" in s.get("composition", "")
         ),
@@ -402,9 +380,7 @@ def validate_coverage(coverage: Dict[str, int], quota: Dict[str, int]) -> List[s
     failures = []
     for quota_key, coverage_key in mapping.items():
         if coverage.get(coverage_key, 0) < quota.get(quota_key, 0):
-            failures.append(
-                f"{coverage_key}: {coverage.get(coverage_key, 0)} < {quota.get(quota_key, 0)}"
-            )
+            failures.append(f"{coverage_key}: {coverage.get(coverage_key, 0)} < {quota.get(quota_key, 0)}")
     return failures
 
 
@@ -426,8 +402,7 @@ def render_series_prompt(
     )
     text_note = (
         "背景招牌只作为环境纹理，文字优先局部、模糊、被遮挡或裁切，不生成大段完整宣传文字。"
-        if text_suppression
-        else ""
+        if text_suppression else ""
     )
     imperfection = ""
     if shot.get("entropy_imperfection") == "yes":
@@ -435,7 +410,7 @@ def render_series_prompt(
 
     return (
         f"{ratio}真实生活摄影。{identity}保持同一套{wardrobe}，{time_note}"
-        f"这一张在系列中是“{role['name']}”，摄影差异角色是 {shot['entropy_role']}。"
+        f"这一张是系列中的“{role['name']}”，摄影差异角色为 {shot['entropy_role']}。"
         f"{subject}在{shot['scene']}，{shot['moment']}。"
         f"摄影师以“{shot['observation_relationship']}”记录，人物尺度为{shot['subject_scale']}，"
         f"采用{shot['composition']}，机位为{shot['camera_position']}。"
@@ -446,37 +421,20 @@ def render_series_prompt(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a controlled-chaos GPT Image photo series")
-    parser.add_argument("subject", help="Subject description")
-    parser.add_argument("--count", type=int, default=6, help="4–12 frames; 6 or 9 recommended")
-    parser.add_argument("--profile", help="Photographer Profile ID or Chinese name")
-    parser.add_argument("--scene", help="Lock one scene for the whole series")
-    parser.add_argument("--intent", default="", help="Free-form series intent")
+    parser.add_argument("subject")
+    parser.add_argument("--count", type=int, default=6)
+    parser.add_argument("--profile")
+    parser.add_argument("--scene")
+    parser.add_argument("--intent", default="")
     parser.add_argument("--ratio", default="9:16 竖幅")
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--taste-profile", help="Path to a Personal Taste JSON file")
-    parser.add_argument(
-        "--series-mode",
-        choices=["single-location", "micro-journey"],
-        default="single-location",
-    )
-    parser.add_argument(
-        "--time-arc",
-        choices=["static", "progressive"],
-        default="static",
-    )
-    parser.add_argument(
-        "--entropy-strength",
-        choices=["balanced", "strong", "wild"],
-        default="strong",
-        help="How aggressively camera/action/composition vary while continuity stays locked",
-    )
-    parser.add_argument("--identity-anchor", default="", help="Extra same-person continuity instruction")
-    parser.add_argument("--wardrobe", help="Lock wardrobe wording for all frames")
-    parser.add_argument(
-        "--allow-readable-text",
-        action="store_true",
-        help="Allow clearly readable background signage; suppressed by default",
-    )
+    parser.add_argument("--taste-profile")
+    parser.add_argument("--series-mode", choices=["single-location", "micro-journey"], default="single-location")
+    parser.add_argument("--time-arc", choices=["static", "progressive"], default="static")
+    parser.add_argument("--entropy-strength", choices=["balanced", "strong", "wild"], default="strong")
+    parser.add_argument("--identity-anchor", default="")
+    parser.add_argument("--wardrobe")
+    parser.add_argument("--allow-readable-text", action="store_true")
     parser.add_argument("--format", choices=["markdown", "json"], default="markdown")
     args = parser.parse_args()
 
@@ -487,27 +445,17 @@ def main() -> None:
     compatibility = load_json("compatibility.json")
     profiles = load_json("photographer_profiles.json")["profiles"]
     taste = load_taste(args.taste_profile)
-    recipes = load_series_recipes()
-    entropy_rules = load_entropy_rules()
+    recipes = load_ref("series_recipes.json")
+    entropy_rules = load_ref("series_entropy_rules.json")
     rng = random.Random(args.seed)
 
     query = " ".join(filter(None, [args.subject, args.scene, args.intent]))
     profile = find_profile(args.profile, profiles, query, taste)
     roles = scale_recipe(args.count, recipes)
     blueprints = entropy_sequence(args.count, args.entropy_strength, rng)
-    scenes = build_scene_sequence(
-        variables,
-        profile,
-        args.scene,
-        args.series_mode,
-        args.count,
-        rng,
-        taste,
-    )
+    scenes = build_scene_sequence(variables, profile, args.scene, args.series_mode, args.count, rng, taste)
 
-    wardrobe = args.wardrobe or choose_named(
-        variables["wardrobe_styles"], [], rng, taste, "wardrobe_styles"
-    )
+    wardrobe = args.wardrobe or choose_named(variables["wardrobe_styles"], [], rng, taste, "wardrobe_styles")
     palette = weighted_preference(
         variables["palettes"],
         profile.get("palette", []),
@@ -518,39 +466,20 @@ def main() -> None:
 
     shots: List[Dict[str, str]] = []
     base_light: str | None = None
-
     for i, (role, blueprint) in enumerate(zip(roles, blueprints)):
         scene = scenes[i]
-        shot = build_shot(
-            variables,
-            compatibility,
-            profile,
-            rng,
-            scene["name"],
-            None,
-            shots,
-            taste,
-        )
+        shot = build_shot(variables, compatibility, profile, rng, scene["name"], None, shots, taste)
         shot["wardrobe"] = wardrobe
         shot["palette"] = palette
-        apply_entropy_blueprint(shot, blueprint, variables)
+        apply_blueprint(shot, blueprint, variables)
         shot["lens"] = role_lens(
-            role,
-            shot["shot_size"],
-            scene,
-            variables,
-            compatibility,
-            profile,
-            rng,
-            taste,
+            role, shot["shot_size"], scene, variables, compatibility, profile, rng, taste
         )
-
         if args.time_arc == "static":
             if base_light is None:
                 base_light = shot["lighting"]
             else:
                 shot["lighting"] = base_light
-
         shot["series_role"] = role["name"]
         shots.append(shot)
 
@@ -563,26 +492,18 @@ def main() -> None:
     text_suppression = bool(entropy_rules.get("text_suppression_default", True)) and not args.allow_readable_text
     result = []
     for i, (shot, role) in enumerate(zip(shots, roles), start=1):
-        result.append(
-            {
-                "index": i,
-                "role": role["name"],
-                "purpose": role["purpose"],
-                "entropy_role": shot["entropy_role"],
-                "profile": profile["name"],
-                "plan": shot,
-                "prompt": render_series_prompt(
-                    shot,
-                    args.subject,
-                    args.ratio,
-                    role,
-                    args.identity_anchor,
-                    wardrobe,
-                    args.time_arc,
-                    text_suppression,
-                ),
-            }
-        )
+        result.append({
+            "index": i,
+            "role": role["name"],
+            "purpose": role["purpose"],
+            "entropy_role": shot["entropy_role"],
+            "profile": profile["name"],
+            "plan": shot,
+            "prompt": render_series_prompt(
+                shot, args.subject, args.ratio, role, args.identity_anchor,
+                wardrobe, args.time_arc, text_suppression
+            ),
+        })
 
     series_plan = {
         "version": "0.8",
@@ -610,7 +531,6 @@ def main() -> None:
     print(f"Palette: {palette}")
     print(f"Coverage: {coverage}")
     print()
-
     for item in result:
         print(f"### {item['index']:02d}｜{item['role']}｜{item['entropy_role']}\n")
         print(item["prompt"])
