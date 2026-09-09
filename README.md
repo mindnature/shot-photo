@@ -312,6 +312,7 @@ shot-photo/
 ├── SKILL.md
 ├── README.md
 ├── QUICKSTART.md
+├── LICENSE
 ├── agents/
 │   └── openai.yaml
 ├── references/
@@ -338,3 +339,11 @@ shot-photo/
 当前产品方向：
 
 > **小白只负责说“想拍什么”，Shot Photo 负责像摄影师一样把剩下的事情做完。**
+
+---
+
+## License
+
+Shot Photo 使用 [MIT License](./LICENSE) 开源。
+
+你可以自由使用、修改、分发和商用本项目；在复制或分发本项目或其主要部分时，请保留原始版权与 MIT License 声明。
