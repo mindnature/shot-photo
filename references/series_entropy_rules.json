@@ -1,0 +1,65 @@
+{
+  "version": "0.8",
+  "default_strength": "strong",
+  "text_suppression_default": true,
+  "tourism_poster_bias_reduction": true,
+  "anti_uniformity_window": 3,
+  "six_image_series": {
+    "min_unique_shot_sizes": 3,
+    "min_unique_camera_positions": 3,
+    "min_unique_action_states": 3,
+    "min_unique_compositions": 3,
+    "min_unique_observation_relationships": 4,
+    "min_occlusion_or_reflection_images": 1,
+    "min_small_subject_environment_images": 1,
+    "min_back_or_partial_back_images": 1,
+    "min_imperfect_images": 1
+  },
+  "nine_image_series": {
+    "min_unique_shot_sizes": 3,
+    "min_unique_camera_positions": 4,
+    "min_unique_action_states": 4,
+    "min_unique_compositions": 4,
+    "min_unique_observation_relationships": 5,
+    "min_occlusion_or_reflection_images": 2,
+    "min_small_subject_environment_images": 1,
+    "min_back_or_partial_back_images": 1,
+    "min_imperfect_images": 1
+  },
+  "observation_relationships": [
+    "同行朋友边走边拍",
+    "稍远处安静观察",
+    "从人物背后跟拍",
+    "从街边店内向外拍",
+    "隔着玻璃或门框观察",
+    "从人群空隙里抓到",
+    "从台阶或地面低处向上拍",
+    "人物经过摄影师时被捕捉",
+    "人物停下来做自己的事时被记录"
+  ],
+  "subject_scales": [
+    "人物小比例大环境",
+    "全身环境关系",
+    "三分之二身体与环境",
+    "半身观察",
+    "近距离情绪",
+    "背影或半背影"
+  ],
+  "text_visibility_levels": [
+    "none",
+    "blurred",
+    "partial",
+    "occluded"
+  ],
+  "entropy_roles": [
+    "environment_small_subject",
+    "walking_companion",
+    "object_interaction",
+    "quiet_pause",
+    "foreground_interruption",
+    "reflection_layer",
+    "low_angle_motion",
+    "close_emotion",
+    "back_view_exit"
+  ]
+}
