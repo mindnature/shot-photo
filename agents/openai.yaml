@@ -1,4 +1,4 @@
 interface:
   display_name: "Shot Photo"
-  short_description: "为 GPT Image 设计真实摄影逻辑、个人风格与批次镜头差异"
-  default_prompt: "使用 $shot-photo，把我的视觉意图转化为 6 组适用于 GPT Image 的真实摄影方案与提示词。"
+  short_description: "不会摄影也能用：说想拍什么，自动完成构图、机位、光线与随机探索"
+  default_prompt: "使用 $shot-photo。告诉我你想拍的人物、场景和感觉；如果没有明确拍法，请直接替我做摄影导演，并优先给出自然、真实、差异明显的摄影方案。"
